@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Version** | 2.2 (29 Oct: multi-group wording, two-form check sentences, anonymous sample rule, F3-AC6 at 60 columns) |
+| **Version** | 2.3 (30 Oct: password reset by Brevo HTTPS API, no SMTP; backend host is a free Gradio Space) |
 | **Status** | Decisions closed. Implementation Plan written. |
 | **Date** | 26 October 2026 |
 | **Product** | FairLens — pre-flight bias check for training data |
@@ -382,9 +382,9 @@ Twelve features. Each has a purpose, requirements, and acceptance criteria. `F<n
 - Google: request only `openid`, `email`, `profile`; consent screen published to **In Production**; no Google tokens stored after sign-in. A privacy-policy page reachable without login is required by Google and must exist.
 - Password: hashed with a memory-hard KDF (algorithm chosen in the TRD), minimum length enforced, no password ever logged.
 - Sessions: httpOnly, secure, sameSite cookie. Session lifetime and rotation specified in the TRD.
-- **Password reset via SMTP from a dedicated Google account using an app password.** Token: single-use, 30-minute expiry, stored hashed, invalidated on use and on password change. Rate-limit reset requests (max 3 per hour per address).
-- If SMTP credentials are missing or sending fails: log it, return a generic success message to the user (no account enumeration), and surface the failure in server logs.
-- Signup states plainly that password accounts depend on an app-password sender and that Google sign-in is the more durable option.
+- **Password reset by email, sent through Brevo's HTTPS API.** Token: single-use, 30-minute expiry, stored hashed, invalidated on use and on password change. Rate-limit reset requests (max 3 per hour per address).
+- If the Brevo key is missing or sending fails: log it, return a generic success message to the user (no account enumeration), and surface the failure in server logs.
+- Signup states plainly that password reset depends on a verified sender address and a free Brevo account, and that Google sign-in is the more durable option.
 
 **Acceptance criteria**
 - **F8-AC1** — Google sign-in completes with only the three basic scopes; the run fails loudly at startup if any sensitive scope is configured.
@@ -512,7 +512,7 @@ Twelve features. Each has a purpose, requirements, and acceptance criteria. `F<n
 | C4 | **Stack: Next.js frontend, FastAPI backend, PostgreSQL.** | Chosen by the owner; not open for revisiting in this PRD. |
 | C5 | **Must work without an LLM key.** | Deterministic template narrative is a first-class output, not a fallback stub. |
 
-**Platform-level facts to confirm at build time (TRD):** the exact row cap the host's memory allows; whether outbound SMTP on port 587 is permitted (fallback: Brevo HTTPS API); Google's In-Production publishing path for non-sensitive scopes.
+**Platform-level facts to confirm at build time (TRD):** the exact row cap the host's memory allows; the largest upload body the Vercel rewrite and the Space each accept; Google's In-Production publishing path for non-sensitive scopes.
 
 ---
 
@@ -547,8 +547,8 @@ One line each. Not a backlog, just a record of what was deliberately left.
 
 | # | Item | Impact | Owner decision needed? |
 |---|---|---|---|
-| R1 | Gmail app passwords are "not recommended" by Google and can be withdrawn | Password reset stops working; new accounts unaffected | No — documented fallback is recovery-by-support, then Brevo API |
-| R2 | Free hosts may block outbound port 587 | Reset emails fail in production only | No — fallback to Brevo HTTPS API, accepting sender rewrite |
+| R1 | Brevo's free plan rate-limits and only sends from a verified sender | Reset mail fails if the sender verification lapses | No — verify the sender once; the app starts and logs the failure |
+| R2 | Free hosts block every port except 80, 443 and 8080 | SMTP can never work; reset must use an HTTPS API | No — closed: Brevo HTTPS is the design, not a fallback |
 | R3 | Google's publish-to-production path for basic scopes | If it does not apply, the 100-user cap and warning screen return | No — verify in console during setup; it blocks nothing in development |
 | R4 | Cold starts on a free host | First request may take 30–60s, breaking S2 | No — keep-alive ping, or measure S2 warm and say so |
 | R5 | 512 MB memory hosts cannot run SHAP alongside pandas | Technical view degrades | No — choose a host with ≥ 2 GB, decided in TRD |
@@ -580,4 +580,4 @@ Every product decision traced to where it is enforced.
 
 ---
 
-*End of PRD v2.2. The Implementation Plan is written and starts after day zero.*
+*End of PRD v2.3. The Implementation Plan is written and starts after day zero.*

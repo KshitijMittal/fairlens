@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Version** | 2.3 (29 Oct: repairs auth and sample path, anonymous sample cache, read query for repairs) |
+| **Version** | 2.4 (30 Oct: backend runs on a free Gradio Space; password reset by Brevo HTTPS, no SMTP) |
 | **Status** | All 10 decisions closed. Implementation Plan written. |
 | **Date** | 26 October 2026 |
-| **Baseline** | `docs/PRD.md` v2.2 — every decision here exists to satisfy a feature or acceptance criterion there |
+| **Baseline** | `docs/PRD.md` v2.3 — every decision here exists to satisfy a feature or acceptance criterion there |
 | **Supersedes** | The v1 Streamlit application and its `modules/` package |
 | **Next document** | `docs/IMPLEMENTATION_PLAN.md` (written; a change here requires a matching change there) |
 
@@ -36,9 +36,9 @@ Three services, one of which holds state.
                     └──────────────────┬────────────────────────┘
                                        │ HTTPS, response streamed
                     ┌──────────────────▼────────────────────────┐
-                    │  HUGGING FACE SPACE — Docker (free)       │
-                    │  backend/  FastAPI + uvicorn             │
-                    │  ~2 vCPU · 16 GB RAM · 50 GB disk        │
+                    │  HUGGING FACE SPACE — Gradio (free)       │
+                    │  backend/space/  FastAPI inside Gradio   │
+                    │  · one uvicorn process on port 7860      │
                     │  · all maths, all SQL, all secrets        │
                     │  · no blob storage, no queue, no Redis    │
                     └──────────────────┬────────────────────────┘
@@ -52,11 +52,11 @@ Three services, one of which holds state.
    outbound from the Space only:
      · Gemini API (primary narrative)
      · OpenRouter (failover narrative)
-     · smtp.gmail.com:587 (password reset)
+     · api.brevo.com:443 (password reset)
      · api.github.com — never; the keep-alive runs from GitHub, not here
 ```
 
-**Why this shape and not another.** Hugging Face Spaces is the only free, no-card host that gives enough RAM for pandas + scikit-learn + SHAP together. Vercel is the natural home for Next.js and its Hobby tier needs no payment method. Neon's free Postgres is enough because we store aggregates and text, never rows. The full comparison is in Appendix A.
+**Why this shape and not another.** Hugging Face Spaces is the only free, no-card host that gives enough RAM for pandas + scikit-learn + SHAP together. Docker Spaces require PRO, so the backend runs under the Gradio SDK with FastAPI mounted inside it: same Python process, same port, no paid plan. Vercel is the natural home for Next.js and its Hobby tier needs no payment method. Neon's free Postgres is enough because we store aggregates and text, never rows. The full comparison is in Appendix A.
 
 **What the architecture deliberately omits.**
 
@@ -184,14 +184,15 @@ Authorisation-code flow with PKCE, implemented by hand against Google's endpoint
 | Not enforced | A common-password blocklist. Length plus argon2 plus the login rate limit in §10 is the better trade; adding a wordlist is a later upgrade |
 | Comparison | Always performed, even for unknown accounts, against a dummy hash, so response timing does not leak account existence |
 
-### 5.4 Password reset over Gmail SMTP
+### 5.4 Password reset over Brevo's HTTPS API
 
 - Request: `POST /v1/auth/reset/request` with an email. Always returns the same generic `202`, whether or not the address exists (F8-AC3).
 - Token: `secrets.token_urlsafe(32)`, SHA-256 stored, **30-minute expiry**, `used_at` set on consumption, invalidated wholesale by a password change (compared against `users.password_changed_at`).
-- Sending: `smtplib` with `starttls()`, port 587, 10-second timeout, one message per request, from a dedicated Google account using an app password.
+- Sending: one HTTPS `POST https://api.brevo.com/v3/smtp/email` with the API key in the header, 20-second timeout, one message per request. **No SMTP anywhere** — Spaces block every port except 80, 443 and 8080, so a mail client on port 587 can never work there.
 - Failure policy: log the exception **without the address**, return the same generic success. Never leak failure to the requester.
-- Volume: Gmail's free ceiling is about 500 recipients per day. The 3-per-hour-per-address limit in §10 sits well under it.
-- Startup check: if `SMTP_HOST`/`SMTP_USER`/`SMTP_PASSWORD`/`SMTP_FROM` are missing in a production environment, **the app refuses to start** (F8-AC6). Failing at the first reset request, silently, is worse.
+- Volume: Brevo's free plan is 300 emails per day and needs no card. The 3-per-hour-per-address limit in §10 sits well under it.
+- Startup check: if `BREVO_API_KEY`/`BREVO_SENDER` are missing in a production environment, **the app refuses to start** (F8-AC6). Failing at the first reset request, silently, is worse.
+- Known cost: the free plan adds a "Sent with Brevo" footer and only sends from a verified sender address. Both are acceptable for a portfolio app and stated in the README.
 
 ### 5.5 Share links
 
@@ -579,7 +580,7 @@ Parsing runs with `openpyxl(read_only=True)` and pandas `chunksize` where a full
 
 - Environment only. `.env.example` is committed with names and no values; `.env` is git-ignored.
 - Loaded through a settings model at startup with an explicit required set, validated before the port binds. Missing secrets produce a startup failure naming the **variable names**, never the values.
-- Space secrets for the backend, Vercel environment variables for the web app. The only value the web app holds is `API_ORIGIN` — deliberately, so no LLM key or SMTP credential can leak into a client bundle.
+- Space secrets for the backend, Vercel environment variables for the web app. The only value the web app holds is `API_ORIGIN` — deliberately, so no LLM key or Brevo key can leak into a client bundle.
 
 ### 11.5 Prompt-injection boundary
 
@@ -589,7 +590,22 @@ Uploaded column headers, group labels and cell values are untrusted text that re
 
 ## 12. Deployment and environments
 
-### 12.1 Backend image
+### 12.1 Backend runtime (Gradio Space)
+
+```python
+# backend/space/app.py
+app = FastAPI()
+...
+uvicorn.run(gr.mount_gradio_app(app, gradio_page, path="/"), host="0.0.0.0", port=7860)
+```
+
+- The Space runs `app.py` under the **Gradio SDK** on the free ZeroGPU allowance. Gradio exists only to satisfy the SDK; the product talks to FastAPI. Docker Spaces need PRO, which C1 forbids.
+- `requirements.txt` is pinned in `backend/space/`. An unpinned ML stack is a cold-start and reproducibility hazard.
+- One process, one uvicorn worker on port `7860`, which is what Spaces expects. That keeps memory predictable and makes the analysis semaphore the real global limit.
+- **Free-tier consequence:** a Space built from a free account is a **public repository**. The code is visible; secrets are not. For a portfolio project this is acceptable and said out loud.
+- The host's CPU share is small. G9 measures it before any feature is built; the fallbacks are in §15.
+
+Local development still uses the image below, in `docker-compose.yml`:
 
 ```dockerfile
 FROM python:3.12-slim
@@ -597,11 +613,8 @@ FROM python:3.12-slim
 ENTRYPOINT ["/app/entrypoint.sh"]   # migrate under advisory lock, then exec uvicorn
 ```
 
-- `uv sync --frozen` from the committed lock file. An unpinned ML stack is a cold-start and reproducibility hazard.
-- `python:3.12-slim`, not alpine — wheels for numpy/scipy/shap are manylinux and alpine would force source builds measured in minutes.
-- Non-root user. Uvicorn on port `7860`, which is what Spaces expects.
-- The entrypoint runs the migration step and only then `exec uvicorn app.main:app --workers 1`. One worker keeps memory predictable and makes the analysis semaphore the real global limit.
-- **Free-tier consequence:** a Space built from a free account is a **public repository**. The code is visible; secrets are not. For a portfolio project this is acceptable and said out loud.
+- `uv sync --frozen` from the committed lock file. `python:3.12-slim`, not alpine — wheels for numpy/scipy/shap are manylinux and alpine would force source builds measured in minutes.
+- The entrypoint runs the migration step and only then `exec uvicorn app.main:app --workers 1`.
 
 ### 12.2 Frontend
 
@@ -665,7 +678,7 @@ The reason for this order, stated once: four days of CI configuration on an app 
 ### 13.3 CI
 
 - **On pull request:** lint (ruff, eslint), type check (mypy, tsc), unit + golden + integration + contract tests, Playwright smoke against a compose stack, axe assertions. Preview deployment for visual review.
-- **On merge to main:** the same suite, then build and push the image, then the Space redeploys from the repo.
+- **On merge to main:** the same suite, then the Space rebuilds from the repository.
 - Migrations are never applied by CI against production; the container applies them at start, under the advisory lock.
 
 ---
@@ -682,7 +695,7 @@ docker compose up          # postgres + api + web, migrations at boot
 | `api` | 7860 | Bind mount, uvicorn `--reload`, entrypoint runs migrations |
 | `web` | 3000 | npm dev server, `API_ORIGIN=http://localhost:7860` |
 
-- `.env.example` documents every variable, with the SMTP and LLM values blank so the app starts in template-fallback mode out of the box (PRD C5 — the product must work with no key).
+- `.env.example` documents every variable, with the Brevo and LLM values blank so the app starts in template-fallback mode out of the box (PRD C5 - the product must work with no key).
 - A `scripts/seed.py` inserts a demo account and one sample analysis so the history and share pages are inspectable without clicking through.
 - Commands are written for PowerShell as well as bash: no `make`, no shell-only `export`, no symlinks. The primary development machine is Windows.
 
@@ -695,13 +708,13 @@ Five of these are cheap now and expensive later. Each has a check and a written 
 | # | Risk | Gate | Fallback |
 |---|---|---|---|
 | **G1** | Vercel's rewrite buffers the streamed response, so progress frames arrive all at once at the end | **Day 1** — `curl -N` the three-frame probe through the deployed rewrite | `NEXT_PUBLIC_ANALYSIS_STREAMING=0`; single JSON body plus a spinner. Verdict unaffected |
-| **G2** | Hugging Face blocks outbound SMTP on port 587, so password reset cannot send | **M2 start** — a manual send from inside the running container | Brevo HTTPS API, accepting its sender rewrite on free email addresses and its "Sent with Brevo" footer |
-| **G3** | **The most likely thing to break the PRD's 50 MB cap.** Vercel documents a 4.5 MB request-body limit for *Functions*. A rewrite to an external host is routed by the edge proxy rather than by a function, so it should not inherit that limit — but this must be measured, not assumed | **Day 1** — post a 60 MB file through the rewrite and check bytes received at the Space | If the proxy refuses bodies over 4.5 MB: uploads go **direct to the Space** with a one-time ticket (`POST /v1/uploads/ticket` returns a nonce bound to the session, the browser then posts the file to the Space with the nonce in a header instead of a cookie — which sidesteps third-party cookie blocking). Non-streaming routes stay proxied. Real work, not a config change, which is why the gate is day one and not M4 |
-| **G4** | SHAP or fairlearn fails to install or is unstable on Python 3.12 | **M0** — the image build | Pin older wheels and drop to Python 3.11; if SHAP still fails, influence degrades (F3-AC5) and the verdict is unaffected |
+| **G2** | Spaces reach only ports 80, 443 and 8080, so password reset cannot send over SMTP | **Day 1** — one real send through Brevo's HTTPS API from the running Space | None needed: Brevo is the design. If the sender address is rejected, verify it in Brevo; the app still starts and logs the failure (F8-AC6) |
+| **G3** | **The most likely thing to break the PRD's 50 MB cap.** Vercel documents a 4.5 MB request-body limit for *Functions*. A rewrite to an external host is routed by the edge proxy rather than by a function, so it should not inherit that limit - but this must be measured, not assumed | **Day 1** — post a 60 MB file through the rewrite and check bytes received at the Space | If the proxy refuses bodies over 4.5 MB: uploads go **direct to the Space** with a one-time ticket (`POST /v1/uploads/ticket` returns a nonce bound to the session, the browser then posts the file to the Space with the nonce in a header instead of a cookie - which sidesteps third-party cookie blocking). Non-streaming routes stay proxied. Real work, not a config change, which is why the gate is day one and not M4 |
+| **G4** | SHAP or fairlearn fails to install or import on the Space's Python | **Day 1** — the Space build, then `/v1/health` reports both versions | Pin Python 3.11 in the Space; if SHAP still fails, influence degrades (F3-AC5) and the verdict is unaffected |
 | **G5** | Neon free tier's 0.5 GB is exceeded | ongoing | Aggregates only: one analysis is roughly 20–40 KB of JSON, so ~15,000 analyses. Not a near-term risk |
 | **G6** | The GitHub keep-alive cron is disabled after 60 days of repository inactivity | ongoing | Accept one 30–60 s cold start, or move the ping to another free scheduler |
 | **G7** | Google's consent screen cannot be published to In Production without verification, leaving the 100-user cap and the warning screen | **M2** | Basic scopes normally avoid verification; if not, the cap is irrelevant at portfolio scale and the warning is a demo blemish |
-| **G8** | Gmail app passwords are withdrawn, or the account changes password and revokes them | ongoing | Documented in PRD R1; recovery is a new app password, then the Brevo path |
+| **G8** | Brevo's free plan changes, or the verified sender lapses | Reset mail stops; new accounts unaffected | Verify the sender once; the app starts and logs the failure (PRD R1) |
 | **G9** | The heaviest pipeline operations exceed the 20-second warm target or the 55-second budget on the free host, because install success is not speed | **Day 1** — a synthetic 50,000 × 60 benchmark on the deployed Space: parse, 5-fold logistic regression, 1,000 bootstrap resamples, SHAP on 500 rows. Cold and warm recorded | Reduce the SHAP sample to 200 rows. If still over, the sampling offer becomes mandatory at 25,000 rows — a PRD change, recorded rather than silently applied |
 
 Each gate is a checklist item in the implementation plan, not a footnote here.
@@ -733,9 +746,10 @@ Each gate is a checklist item in the implementation plan, not a footnote here.
 | Rejected | Why |
 |---|---|
 | **Oracle Cloud Always Free** (4 ARM cores, 24 GB, always-on) | Objectively better hardware, and it requires a card for identity verification — excluded by C1. The real decision behind T1, recorded here so it is not re-litigated |
+| **Hugging Face Docker Space** | $9/month PRO on a card. Excluded by C1. The free Gradio SDK runs the same FastAPI app in the same process, so nothing but the packaging changes |
 | **Render / Koyeb free** (512 MB) | Cannot hold pandas + scikit-learn + SHAP; would force deleting F5's feature influence |
 | **Vercel serverless Python** | 250 MB bundle, 10 s Hobby timeout — cannot host this backend at all |
-| **PythonAnywhere free** | No outbound internet, so no LLM and no SMTP |
+| **PythonAnywhere free** | No outbound internet, so no LLM and no reset mail |
 | **Cloudflare Workers** | 128 MB isolate, no pandas |
 | **Alembic** | Built around SQLAlchemy; heavy dependency and its conventions just to run our own SQL files |
 | **SQLAlchemy Core** | Emits SQL at runtime, so the reviewer reads Python instead of the queries. Contradicts "screams SQL" |
@@ -751,4 +765,4 @@ Each gate is a checklist item in the implementation plan, not a footnote here.
 
 ---
 
-*End of TRD v2.3. The Implementation Plan is written and starts after day zero.*
+*End of TRD v2.4. The Implementation Plan is written and starts after day zero.*

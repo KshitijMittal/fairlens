@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Version** | 2.2 (29 Oct: anonymous sample cache, sample repairs, plural deciding checks) |
+| **Version** | 2.3 (30 Oct: baseline TRD v2.4 — Gradio Space, Brevo reset) |
 | **Status** | All 11 decisions closed. Implementation Plan written. |
 | **Date** | 27 October 2026 |
-| **Baseline** | `docs/PRD.md` v2.2 and `docs/TRD.md` v2.3 |
+| **Baseline** | `docs/PRD.md` v2.3 and `docs/TRD.md` v2.4 |
 | **Next document** | `docs/IMPLEMENTATION_PLAN.md` (written; a change here requires a matching change there) |
 
 ---
@@ -446,7 +446,7 @@ The share page offers the same button, so a forwarded report can be forwarded on
 | A6 repair flow | F6, F6-AC2, F6-AC7, §10 no retention |
 | A7 share view | F7-AC1, F7-AC3, F5-AC2, F10 chat on share |
 | A8 history | F9, F11-AC4, F9-AC5 |
-| A9 deletion gate | F9-AC1, F9-AC3, PRD R1 (SMTP independence) |
+| A9 deletion gate | F9-AC1, F9-AC3, PRD R1 (reset mail independent of the session) |
 | A10 chat placement | F10, F10-AC4 |
 | A11 print | F7-AC4, F7-AC5, F7-AC6 |
 | `/account` route | F9-AC3 |
@@ -454,4 +454,4 @@ The share page offers the same button, so a forwarded report can be forwarded on
 
 ---
 
-*End of App Flow v2.2. The Implementation Plan is written and starts after day zero.*
+*End of App Flow v2.3. The Implementation Plan is written and starts after day zero.*

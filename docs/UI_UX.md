@@ -5,7 +5,7 @@
 | **Version** | 2.2 (29 Oct: two-form check sentences, Inconclusive reason visible, print repairs conditional) |
 | **Status** | All 19 decisions closed (16 interface, 3 dark theme). Implementation Plan written. |
 | **Date** | 27 October 2026 |
-| **Baseline** | `docs/PRD.md` v2.2, `docs/TRD.md` v2.3, `docs/APP_FLOW.md` v2.2 |
+| **Baseline** | `docs/PRD.md` v2.3, `docs/TRD.md` v2.4, `docs/APP_FLOW.md` v2.3 |
 | **Next document** | `docs/IMPLEMENTATION_PLAN.md` (written; a change here requires a matching change there) |
 
 ---
