@@ -2,10 +2,10 @@
 
 | | |
 |---|---|
-| **Version** | 1.1 (29 Oct: audit fixes — anonymous sample cache, sample repairs, repairs refresh, test map) |
-| **Status** | Decisions closed (5 of 5). Ready for day zero. |
-| **Date** | 29 October 2026 |
-| **Baseline** | `docs/PRD.md` v2.2, `docs/TRD.md` v2.3, `docs/APP_FLOW.md` v2.2, `docs/UI_UX.md` v2.2, `docs/BACKEND_SCHEMA.md` v2.2 |
+| **Version** | 1.3 (2 Nov: Day Zero complete; G1–G4 and G9 recorded in §2.2) |
+| **Status** | Decisions closed (5 of 5). Day Zero complete. M0 next. |
+| **Date** | 30 October 2026 |
+| **Baseline** | `docs/PRD.md` v2.3, `docs/TRD.md` v2.4, `docs/APP_FLOW.md` v2.3, `docs/UI_UX.md` v2.2, `docs/BACKEND_SCHEMA.md` v2.2 |
 | **Relationship to the TRD** | TRD §13.2 names the milestones. This document makes each one executable: files, commands, tests, and what to drop |
 
 ---
@@ -45,14 +45,14 @@ The v1 app is not amended and not kept in the tree (PRD, header). The destructio
 | Step | Command | Result |
 |---|---|---|
 | 1. Snapshot | `Compress-Archive app.py,modules,requirements.txt,.env.example,README.md "$env:TEMP\fairlens-v1.zip"` | A zip outside the repository, not in any commit, kept until v2 ships |
-| 2. Delete | `Remove-Item -Recurse -Force app.py,modules,requirements.txt,__pycache__` | The working tree has no v1 code |
+| 2. Delete | `Remove-Item -Recurse -Force app.py,modules,requirements.txt,__pycache__,README.md` | The working tree has no v1 code; the README is rewritten at M0 |
 | 3. Initialise | `git init; git add -A; git commit -m "chore: start FairLens v2"` | History begins at v2. There is no v1 commit to revert to |
 | 4. Protect | `.gitignore` covers `venv/`, `node_modules/`, `.next/`, `.env`, `__pycache__/`, `*.pyc` | The 26,000-file virtualenv never enters history |
 
 **Rules**
 
 - The snapshot is a zip, not a branch. It exists to recover a formula in an emergency, not to compare implementations.
-- `.env` is never committed; `.env.example` is written fresh in M0 with every variable blank.
+- `.env` is never committed; `.env.example` is committed at day zero with every secret blank, and M0 keeps its names in sync with the settings model.
 - Step 2 happens before step 3. A repository that contains both versions invites "just fix it in the old one".
 
 ### 2.2 The gates
@@ -62,14 +62,22 @@ A gate is passed by a recorded measurement, not an opinion. Each row names the c
 | # | Question | Command | Pass | If it fails |
 |---|---|---|---|---|
 | **G1** | Does the Vercel rewrite pass an NDJSON stream through unbuffered? | `curl.exe -N https://<app>/v1/dev/stream-probe` | Three frames arrive spread over at least two seconds | Ship with `NEXT_PUBLIC_ANALYSIS_STREAMING=0`: one JSON body and a spinner. The verdict is unchanged |
-| **G2** | Can the backend send mail from Hugging Face? | `docker run --env-file .env <image> python -m scripts.smtp_probe you@example.com` | The message arrives | Password reset moves to Brevo's HTTPS API. Recorded as a provider change, not a code redesign |
+| **G2** | Can the Space send reset mail? Spaces allow only ports 80, 443 and 8080, so there is no SMTP | `python backend/scripts/mail_probe.py https://<space> you@example.com` | The message arrives | Brevo is the design, not a fallback. If the sender is rejected, verify it in Brevo; the app still starts and logs the failure |
 | **G3** | Does a 60 MB body survive the rewrite? | `curl.exe -F "file=@samples/_gate/big.csv" https://<app>/v1/dev/echo-size` | The endpoint reports 62,914,560 bytes | Uploads go direct to the Space with a one-time ticket. This is the expensive fallback and the reason the gate is on day zero |
-| **G4** | Do SHAP and fairlearn install and import on the host's Python? | `docker build -t fairlens-api backend/` then `docker run --rm fairlens-api python -c "import shap, fairlearn"` | Exit code 0 | Pin Python 3.11. If SHAP still fails, influence is marked unavailable (F3-AC5) and the verdict is unaffected |
-| **G9** | Can the host run the pipeline's heaviest operations inside the budget? | `python -m scripts.bench_host` against the deployed Space: a synthetic 50,000 × 60 frame, 5-fold logistic regression, 1,000 bootstrap resamples, SHAP on 500 rows | Warm under **20 s** (F3-AC6) and every run under **55 s** (TRD §6.1). Cold and warm both recorded | Reduce the SHAP sample from 500 to 200 rows. If still over, the sampling offer becomes mandatory at 25,000 rows — a PRD change, not a silent tweak |
+| **G4** | Do SHAP and fairlearn install and import on the Space's Python? | Push the probe, then `curl.exe https://<space>/v1/health` | Both versions are reported; neither says `unavailable` | Pin Python 3.11 in the Space's README. If SHAP still fails, influence is marked unavailable (F3-AC5) and the verdict is unaffected |
+| **G9** | Can the host run the pipeline's heaviest operations inside the budget? | `python backend/scripts/bench_host.py https://<space>`: a synthetic 50,000 × 60 frame, CSV round-trip, 5-fold logistic regression, 1,000 bootstrap resamples, SHAP on 500 rows | Warm under **20 s** (F3-AC6) and every run under **55 s** (TRD §6.1). Cold and warm both recorded | Reduce the SHAP sample from 500 to 200 rows. If still over, the sampling offer becomes mandatory at 25,000 rows — a PRD change, not a silent tweak |
 
-**Recorded result.** The five outcomes go into a table in this section before M0 begins: date, host, numbers, fallback taken or not. A gate with no recorded number has not been run.
+**Recorded result.** The five outcomes go into the table below before M0 begins: date, host, numbers, fallback taken or not. A gate with no recorded number has not been run.
 
-**Time box: half a day.** The probe deploy is the thinnest possible application: `/v1/health`, `/v1/dev/stream-probe`, `/v1/dev/echo-size`, and a page that renders one line. It is thrown away at M0 and rebuilt properly, which is cheaper than discovering G3 after the upload component exists.
+| Gate | Date | Host | Measurement | Fallback taken |
+|---|---|---|---|---|
+| G1 | 2026-11-01 | Vercel rewrite → Space (`web-sigma-roan-24.vercel.app/api/v1/dev/stream-probe`) | 3 NDJSON frames at 1.29 / 1.80 / 2.31 s (~0.5 s apart), `application/x-ndjson` preserved; unbuffered | none |
+| G2 | 2026-11-01 | Space → Brevo HTTPS API | `mail_probe.py` returns 202; message received at the verified sender's inbox | none (Brevo IP restriction disabled — Spaces egress IPs are dynamic and cannot be whitelisted) |
+| G3 | 2026-11-01 | Vercel rewrite → Space (`/api/v1/dev/echo-size`) | reports 62,914,560 bytes; HTTP 200 in 13.6 s | none |
+| G4 | 2026-11-01 | `kshitijmittal07-fairlens-probe.hf.space` (ZeroGPU, Python 3.12.12) | `/v1/health` reports shap 0.54.1, fairlearn 0.15.0; neither `unavailable` | none |
+| G9 | 2026-11-01 | `kshitijmittal07-fairlens-probe.hf.space` (ZeroGPU) | `bench_host.py`: cold 5.4 s, warm 5.56 s (budget 55 s / 20 s) | none |
+
+**Time box: half a day.** The probe deploy is the thinnest possible application: `/v1/health`, `/v1/dev/stream-probe`, `/v1/dev/echo-size`, `/v1/dev/bench`, `/v1/dev/mail-probe`, and a page that renders one line. It is thrown away at M0 and rebuilt properly, which is cheaper than discovering G3 after the upload component exists.
 
 ---
 
@@ -78,8 +86,9 @@ A gate is passed by a recorded measurement, not an opinion. Each row names the c
 ```
 fairlens/
 ├─ backend/
-│  ├─ Dockerfile
+│  ├─ Dockerfile                local compose image only; the host never builds it
 │  ├─ pyproject.toml
+│  ├─ space/                    the Gradio Space: app.py, requirements.txt, README.md
 │  └─ app/
 │     ├─ main.py                 FastAPI app, middleware, routers
 │     ├─ core/                   settings, verdict, report_text, security
@@ -94,7 +103,7 @@ fairlens/
 │  ├─ lib/                       generated API client, theme resolution
 │  └─ e2e/                       Playwright specs named in §6
 ├─ samples/                      the three bundled CSVs, also the test fixtures
-├─ scripts/                      bench.py, smtp_probe.py, seed.py
+├─ scripts/                      bench_host.py, mail_probe.py, seed.py
 ├─ .github/workflows/            ci.yml, keep-alive.yml
 ├─ docker-compose.yml            postgres:16 + api + web
 └─ docs/                         these six documents
@@ -127,7 +136,7 @@ Both are consequences of decisions taken later, and both are now written into th
 
 | Builds | Detail |
 |---|---|
-| Deploy | Hugging Face Space (backend image) and Vercel (Next app) wired by the rewrite from TRD §9.1 |
+| Deploy | Hugging Face Space (Gradio SDK, FastAPI mounted) and Vercel (Next app) wired by the rewrite from TRD §9.1 |
 | Health | `GET /v1/health` returns version and a database flag that is `false` at this milestone |
 | Engine | Parsing for the bundled CSV, encoding, 5-fold logistic regression, C1–C5, bootstrap intervals. No SHAP yet |
 | Payload | `AnalysisResult` with the server-authored sentences already in `report_text.py`, including the four lead headlines |
@@ -196,7 +205,7 @@ psql "$DATABASE_URL" -c "select count(*) from analyses"
 
 | Builds | Detail |
 |---|---|
-| Auth | Signup, login, logout, sessions, `/v1/me`; Google as a second method; reset over SMTP or Brevo per G2 |
+| Auth | Signup, login, logout, sessions, `/v1/me`; Google as a second method; reset by Brevo HTTPS per G2 |
 | Upload | 50 MB / 100,000 rows / 60 columns guards in the order of TRD §11.2; delimiter and encoding detection (F1-AC1) |
 | Confirmation | Deterministic column detection, the one card, the `Change` disclosure, the five refusal cases (F2) |
 | Choices | Sampling above 50,000 rows; XLSX sheet choice |
@@ -549,3 +558,4 @@ The project is finished when all of the following are true at once.
 ---
 
 *End of Implementation Plan v1.1. This is the sixth and last document; the build starts at §2.1.*
+
