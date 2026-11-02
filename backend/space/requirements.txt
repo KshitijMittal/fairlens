@@ -1,0 +1,13 @@
+# Space runtime only. Python is 3.12 (set in the Space README).
+# This throwaway probe leaves pandas/scipy/scikit-learn/shap unpinned on
+# purpose: it is deleted at M0, where the real app starts from a locked
+# pyproject. Recorded at G4: shap 0.54.1, fairlearn 0.15.0.
+fastapi==0.162.0
+uvicorn==0.54.0
+python-multipart==0.0.32
+numpy==2.2.6
+pandas
+scipy
+scikit-learn
+shap
+fairlearn
