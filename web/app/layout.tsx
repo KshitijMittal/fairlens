@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "FairLens Day Zero Probe",
+  title: "FairLens",
 };
 
 export default function RootLayout({
