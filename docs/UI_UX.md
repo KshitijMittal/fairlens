@@ -380,7 +380,7 @@ Three forms, one shape. The direction is the only thing that changes.
 **When the model widens the gap (Warn or Fail):**
 
 > **The model makes the gap wider.**
-> Your data already approves men at 62% and women at 41% — a 21-point gap. A model trained on it widens that gap to 34 points. It learned the pattern and pushed harder than the data did.
+> Your data already shows a 21-point gap between men and women. A model trained on it widens that gap to 34 points. It learned the pattern and pushed harder than the data did.
 
 **When the model leaves the gap roughly where it is (Pass, within ±0.05):**
 
@@ -392,9 +392,9 @@ Three forms, one shape. The direction is the only thing that changes.
 > **The model narrows the gap.**
 > Your data shows a 21-point gap between men and women. A model trained on it shows 12 points. The disparity is smaller than the one the data already contains — but it has not disappeared.
 
-Every figure in these sentences is injected by the server after generation, never written by a language model, and the group names come from the user's own file.
+Every figure in these sentences is injected by the server after generation, never written by a language model, and the group names come from the user's own file (`female`/`male` render as women/men).
 
-### 7.4 The six log lines
+### 7.4 The seven log lines
 
 ```
 Reading your file…

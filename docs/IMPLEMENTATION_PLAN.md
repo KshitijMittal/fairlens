@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Version** | 1.3 (2 Nov: Day Zero complete; G1–G4 and G9 recorded in §2.2) |
-| **Status** | Decisions closed (5 of 5). Day Zero complete. M0 next. |
+| **Status** | Decisions closed (5 of 5). Day Zero complete. M0 steps 1–12 complete and tested; deploy (step 13) pending approval. |
 | **Date** | 30 October 2026 |
 | **Baseline** | `docs/PRD.md` v2.3, `docs/TRD.md` v2.4, `docs/APP_FLOW.md` v2.3, `docs/UI_UX.md` v2.2, `docs/BACKEND_SCHEMA.md` v2.2 |
 | **Relationship to the TRD** | TRD §13.2 names the milestones. This document makes each one executable: files, commands, tests, and what to drop |
@@ -148,7 +148,7 @@ Both are consequences of decisions taken later, and both are now written into th
 ```
 curl.exe -s https://<app>/v1/health
 curl.exe -s -X POST https://<app>/v1/dev/sample/scholarship | head -c 400
-npx playwright test web/e2e/skeleton.spec.ts
+cd web; npx playwright test
 ```
 
 The page shows `PASS` and all five checks for the scholarship sample.
@@ -160,6 +160,7 @@ The page shows `PASS` and all five checks for the scholarship sample.
 - `web/e2e/skeleton.spec.ts` — a sample click reaches a rendered verdict with no console error.
 - `tests/test_report_text.py` — the four lead headlines and both forms of every check sentence match UI/UX §7.1–7.2 verbatim.
 - `tests/test_no_row_data.py` — the serialised payload contains no cell value from the sample (the shape test from BACKEND_SCHEMA §3.1).
+- `tests/test_payload_contract.py` — sha256, precision vs recall, gap interval in the affected sentence, non-negative model gap, no affected groups on a Pass, imputed medians and dropped columns.
 
 **If it runs long:** drop the second and third samples. One sample proves the path.
 

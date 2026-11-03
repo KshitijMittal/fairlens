@@ -725,8 +725,8 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
   },
 
   "affected": [
-    { "group": "women",
-      "sentence": "Women were approved at 41% and men at 62% — a 21-point gap (95% CI 14–28)." }
+    { "group": "female",
+      "sentence": "For women: 41% approved; for men: 62% — a 21-point gap (95% CI 14–28)." }
   ],
 
   "amplification": {
@@ -786,6 +786,7 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
 | **Every sentence containing a number is authored by the server.** `lead.headline`, `lead.consequence`, `checks[].sentence`, `affected[].sentence`, `amplification.sentence`, `amplification.detail`, `narrative.body` and `analysis_repairs.summary` arrive as finished strings | F4-AC6: the client renders these verbatim and never composes the text around a figure. The copy therefore lives in `backend/app/core/report_text.py` |
 | `checks[]` always has exactly five entries, in `C1`–`C5` order | An omitted check is how an Inconclusive state disappears |
 | `deciding_checks` equals the codes whose `state` matches the verdict, and is `[]` on a Pass | It is the stored column, not recomputed by the client. History and the lead block read the same list |
+| `affected` lists every historical group except the best-off one, each with the gap and the gap's paired-bootstrap interval, and is `[]` on a Pass | "Who is affected" cannot name victims when no check failed; an interval borrowed from one group's rate is the wrong statistic |
 | `lead.headline` is chosen by `verdict`, never by the number of failing checks | One verdict, one sentence. A Fail with one failing check does not get softer copy |
 | `groups.historical` and `groups.model` have the same labels in the same order | The chart aligns them by index; a mismatch would silently mis-pair bars |
 | `interval` is `null` or a two-element ascending array | The UI renders a whisker only when it exists |
