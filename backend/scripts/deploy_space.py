@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Publish the probe to a free Hugging Face Gradio Space.
+"""Publish the backend to a free Hugging Face Gradio Space.
 
 Usage (from the repo root, with HF_TOKEN in .env):
     python backend/scripts/deploy_space.py
@@ -39,8 +39,21 @@ def main() -> int:
         repo_id=repo_id,
         repo_type="space",
     )
+    api.upload_folder(
+        folder_path=os.path.join(os.path.dirname(__file__), "..", "app"),
+        path_in_repo="app",
+        repo_id=repo_id,
+        repo_type="space",
+    )
+    api.upload_folder(
+        folder_path=os.path.join(os.path.dirname(__file__), "..", "..", "samples"),
+        path_in_repo="samples",
+        repo_id=repo_id,
+        repo_type="space",
+        allow_patterns=["loan_approvals.csv", "hiring_shortlist.csv", "scholarship.csv", "README.md"],
+    )
 
-    for name in ("PROBE_TOKEN", "BREVO_API_KEY", "BREVO_SENDER"):
+    for name in ("BREVO_API_KEY", "BREVO_SENDER"):
         if env.get(name):
             api.add_space_secret(repo_id=repo_id, key=name, value=env[name])
 
