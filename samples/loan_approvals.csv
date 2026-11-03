@@ -1,0 +1,924 @@
+# Source: UCI Machine Learning Repository - Statlog (German Credit) Data Set.
+# URL: https://archive.ics.uci.edu/dataset/144/statlog+german+credit+data
+# Licence: CC BY 4.0 (citation: Hans Hofmann, 1994).
+# Derivation: 1,000 source rows subsampled to 908 (219 women: all denials +
+# 110 of 201 approvals; 689 men: all denials + 498 of 499 approvals) so the
+# documented female/male parity ratio lands in the 0.6s; then 6 exact duplicate
+# rows; 12 blank housing and 8 blank employment_years cells; mixed letter casing
+# in gender and purpose. No identifiers existed in the source.
+# Documented historical parity ratio (female/male, approved): 0.695.
+gender,age_years,duration_months,credit_amount_eur,purpose,credit_history,savings,employment_years,housing,decision
+male,40,24,1358,other,A31,unknown,over_7y,own,denied
+Female,24,48,4308,business,A32,little,under_1y,rent,denied
+Male,34,18,2622,business,A32,moderate,1_to_4y,own,approved
+female,24,18,2124,furniture,A34,little,1_to_4y,rent,denied
+male,61,36,1953,business,A30,little,over_7y,free,denied
+male,31,30,6350,furniture,A32,unknown,over_7y,,denied
+Male,31,24,3430,tv,A32,quite_rich,over_7y,own,approved
+MALE,26,48,4788,car_used,A32,little,4_to_7y,own,approved
+Female,37,18,3612,furniture,A34,little,over_7y,own,approved
+male,27,36,2613,repairs,A30,little,1_to_4y,own,approved
+male,37,24,4712,business,A33,unknown,1_to_4y,own,approved
+MALE,25,12,1262,tv,A32,little,1_to_4y,own,approved
+MALE,41,12,888,car_new,A32,little,over_7y,own,denied
+female,44,24,12579,car_used,A32,little,over_7y,free,denied
+MALE,43,6,1203,car_new,A32,moderate,over_7y,own,approved
+male,32,48,7238,tv,A33,unknown,over_7y,,approved
+male,45,12,339,retraining,A31,little,over_7y,own,approved
+Male,40,11,3939,car new,A34,little,1_to_4y,own,approved
+female,23,36,7127,furniture,A34,little,under_1y,rent,denied
+FEMALE,37,48,7685,business,A31,little,4_to_7y,rent,denied
+male,31,24,3161,business,A31,little,1_to_4y,rent,denied
+male,27,9,1422,car_new,A32,little,under_1y,free,denied
+male,47,18,1217,appliances,A32,little,1_to_4y,own,denied
+Male,41,36,2712,furniture,A32,little,over_7y,own,denied
+MALE,31,18,3378,car_used,A32,unknown,1_to_4y,own,approved
+Male,37,36,3620,furniture,A32,little,1_to_4y,own,approved
+male,36,30,6742,tv,A34,unknown,4_to_7y,own,approved
+male,68,16,1175,car_new,A34,little,unemployed,free,approved
+FEMALE,33,24,1927,education,A34,unknown,1_to_4y,own,approved
+Male,48,27,5190,repairs,A32,unknown,over_7y,own,approved
+male,22,9,1478,tv,A32,little,4_to_7y,own,denied
+male,63,12,1655,tv,A34,little,over_7y,own,approved
+female,31,21,2782,car_new,A32,quite_rich,4_to_7y,own,approved
+MALE,27,27,8613,car_used,A33,rich,1_to_4y,own,approved
+female,67,18,3872,repairs,A32,little,unemployed,own,approved
+MALE,47,21,2353,car_new,A33,little,1_to_4y,own,approved
+Male,30,9,1224,car new,A34,little,1_to_4y,own,approved
+Male,36,6,1872,furniture,A34,little,unemployed,free,approved
+MALE,34,7,2415,tv,A32,little,1_to_4y,own,approved
+MALE,27,24,937,retraining,A32,little,under_1y,own,approved
+Male,57,36,2225,car new,A33,little,over_7y,free,denied
+male,28,24,4169,furniture,A32,little,1_to_4y,own,approved
+male,48,24,9277,car_used,A32,unknown,1_to_4y,free,approved
+Male,26,24,1382,business,A34,moderate,4_to_7y,own,approved
+FEMALE,28,18,1817,furniture,A34,little,1_to_4y,own,approved
+Male,27,6,709,car new,A32,rich,under_1y,own,approved
+Male,65,18,2600,tv,A32,little,1_to_4y,free,denied
+FEMALE,22,12,741,appliances,A32,moderate,unemployed,own,denied
+Male,22,24,2039,tv,A32,little,under_1y,own,denied
+MALE,37,24,3878,car_new,A34,moderate,under_1y,own,approved
+female,25,12,1295,car_new,A32,little,under_1y,rent,denied
+Female,40,10,894,retraining,A32,unknown,4_to_7y,own,approved
+male,27,40,5998,education,A34,little,1_to_4y,own,denied
+Male,37,6,3676,car new,A34,little,1_to_4y,rent,approved
+Male,34,24,2910,car used,A32,little,4_to_7y,free,approved
+Male,30,18,1820,car new,A32,little,1_to_4y,own,approved
+Male,35,18,1941,business,A32,rich,1_to_4y,own,approved
+MALE,26,12,1424,appliances,A34,little,4_to_7y,own,approved
+FEMALE,26,18,2404,tv,A34,little,1_to_4y,own,approved
+Male,70,10,7308,car new,A32,little,unemployed,free,approved
+Female,57,12,2748,education,A34,little,over_7y,free,approved
+FEMALE,23,24,1553,tv,A33,moderate,4_to_7y,rent,approved
+male,30,24,2028,furniture,A34,little,4_to_7y,own,approved
+Male,60,20,6468,car used,A32,unknown,unemployed,own,approved
+Female,25,18,2238,tv,A34,little,,own,approved
+Male,33,24,2359,furniture,A32,moderate,unemployed,own,denied
+Female,24,8,1237,furniture,A32,little,1_to_4y,own,denied
+FEMALE,30,42,7174,tv,A32,unknown,4_to_7y,own,denied
+MALE,45,12,3527,car_new,A32,unknown,under_1y,own,approved
+Male,36,36,6304,business,A34,unknown,over_7y,own,approved
+male,32,10,1231,car_new,A34,little,over_7y,own,approved
+Male,22,24,2828,furniture,A31,quite_rich,1_to_4y,own,approved
+male,30,18,5866,car_new,A32,moderate,1_to_4y,own,approved
+MALE,36,18,1913,business,A32,rich,under_1y,own,approved
+FEMALE,55,18,1190,repairs,A34,little,unemployed,free,denied
+FEMALE,25,15,1433,furniture,A34,little,1_to_4y,rent,approved
+male,22,24,2483,furniture,A31,quite_rich,1_to_4y,own,approved
+Male,34,30,11998,repairs,A32,little,under_1y,own,denied
+MALE,32,18,1442,car_new,A31,little,4_to_7y,free,denied
+MALE,36,30,2181,car_new,A34,unknown,over_7y,own,approved
+FEMALE,25,30,2991,tv,A32,unknown,over_7y,own,approved
+FEMALE,25,24,1355,car_new,A32,little,under_1y,own,denied
+Male,26,27,5117,business,A33,little,4_to_7y,own,approved
+male,31,10,1521,furniture,A32,little,1_to_4y,own,approved
+Male,26,24,3235,tv,A32,quite_rich,over_7y,own,approved
+male,22,12,1331,tv,A32,little,under_1y,own,denied
+Female,41,24,3868,car used,A34,little,over_7y,rent,approved
+male,66,12,766,tv,A32,quite_rich,1_to_4y,own,denied
+Male,35,15,1471,tv,A34,little,1_to_4y,free,approved
+male,35,12,2141,tv,A32,moderate,4_to_7y,own,approved
+female,29,9,959,furniture,A32,little,1_to_4y,own,denied
+Male,29,12,1103,tv,A32,little,4_to_7y,own,approved
+MALE,45,28,4006,car_new,A32,little,1_to_4y,own,denied
+FEMALE,27,24,3123,car_new,A32,little,under_1y,own,denied
+MALE,21,18,2779,car_used,A32,little,1_to_4y,rent,approved
+female,43,15,1459,tv,A34,little,1_to_4y,own,approved
+male,24,12,3016,tv,A32,little,1_to_4y,own,approved
+FEMALE,24,48,11590,car_used,A34,moderate,1_to_4y,rent,denied
+male,33,15,3029,car_used,A32,little,4_to_7y,own,approved
+MALE,33,20,2235,car_new,A34,little,1_to_4y,rent,denied
+male,35,7,2576,tv,A32,little,1_to_4y,own,approved
+Male,24,9,2030,furniture,A32,unknown,4_to_7y,own,approved
+MALE,27,36,7980,business,A33,unknown,under_1y,rent,denied
+Female,28,21,2923,car new,A32,moderate,1_to_4y,own,approved
+MALE,25,15,1264,car_new,A31,moderate,1_to_4y,rent,denied
+MALE,36,27,3915,business,A32,little,1_to_4y,own,denied
+FEMALE,25,12,2969,furniture,A30,little,under_1y,rent,denied
+Female,35,6,1198,education,A31,little,over_7y,free,denied
+Female,42,36,3804,tv,A30,little,1_to_4y,own,denied
+Male,39,8,3398,car new,A34,little,4_to_7y,own,approved
+MALE,25,12,1484,tv,A32,unknown,1_to_4y,,denied
+FEMALE,23,24,11560,car_used,A32,little,1_to_4y,rent,denied
+Male,35,14,1410,business,A32,quite_rich,over_7y,own,approved
+male,28,15,3343,furniture,A34,little,1_to_4y,free,approved
+Male,22,24,3092,tv,A32,moderate,under_1y,rent,denied
+female,29,21,5003,car_new,A30,unknown,1_to_4y,own,denied
+male,29,28,2743,tv,A34,little,over_7y,own,approved
+MALE,67,6,1169,tv,A34,unknown,over_7y,own,approved
+Female,28,36,3349,furniture,A32,little,1_to_4y,own,denied
+FEMALE,39,6,666,car_new,A34,rich,4_to_7y,own,approved
+Male,31,36,2746,furniture,A31,little,over_7y,own,denied
+Male,36,42,4042,furniture,A34,quite_rich,1_to_4y,own,approved
+Male,34,12,1860,car used,A34,little,unemployed,own,approved
+Female,26,36,10974,furniture,A32,little,unemployed,own,denied
+male,41,24,1469,car_new,A32,moderate,over_7y,rent,approved
+MALE,75,24,6615,car_used,A34,little,unemployed,free,approved
+female,62,24,3757,car_new,A32,little,over_7y,free,approved
+Male,39,36,3249,car new,A32,little,4_to_7y,free,approved
+Female,24,30,2150,car new,A32,little,1_to_4y,own,denied
+female,22,12,1258,furniture,A34,little,under_1y,rent,approved
+male,33,18,6070,tv,A34,little,over_7y,own,approved
+FEMALE,26,30,1715,tv,A32,unknown,1_to_4y,own,approved
+MALE,56,42,4796,car_used,A34,little,over_7y,free,approved
+Female,20,11,1577,furniture,A32,rich,under_1y,own,approved
+female,44,24,5943,tv,A32,unknown,under_1y,own,denied
+MALE,63,15,1520,furniture,A34,unknown,over_7y,own,approved
+Male,64,9,3832,education,A32,unknown,over_7y,own,approved
+male,27,24,2463,car_new,A34,moderate,4_to_7y,own,approved
+MALE,41,30,2503,business,A33,moderate,over_7y,own,approved
+MALE,34,24,2825,business,A34,unknown,4_to_7y,own,approved
+Male,42,12,3331,furniture,A34,little,over_7y,own,approved
+male,27,36,3711,education,A32,unknown,1_to_4y,own,approved
+Male,44,6,2647,tv,A32,quite_rich,1_to_4y,rent,approved
+MALE,24,6,2080,car_new,A34,quite_rich,1_to_4y,own,approved
+Female,64,13,1409,tv,A32,moderate,unemployed,own,approved
+MALE,46,6,1343,car_new,A34,little,over_7y,own,approved
+MALE,28,21,2993,car_used,A33,little,1_to_4y,own,approved
+MALE,27,15,2708,furniture,A32,little,under_1y,own,approved
+male,52,6,338,tv,A34,quite_rich,over_7y,own,approved
+Female,27,18,1295,furniture,A34,little,under_1y,own,approved
+male,61,12,3059,tv,A32,rich,4_to_7y,own,approved
+female,48,18,1795,tv,A34,little,over_7y,rent,approved
+MALE,32,24,2325,car_new,A31,moderate,4_to_7y,own,approved
+Male,30,24,1823,tv,A32,little,unemployed,own,denied
+FEMALE,26,12,609,business,A31,little,under_1y,own,denied
+MALE,36,15,2360,car_used,A34,quite_rich,1_to_4y,own,approved
+Male,42,36,8086,car new,A33,moderate,over_7y,own,denied
+Male,50,12,2390,car new,A32,unknown,over_7y,own,approved
+MALE,49,12,3124,car_new,A34,little,under_1y,own,approved
+male,45,15,1300,car_used,A32,unknown,over_7y,free,approved
+male,44,18,1553,furniture,A31,little,1_to_4y,own,denied
+male,61,18,1239,education,A32,unknown,1_to_4y,free,approved
+Male,65,12,930,tv,A34,unknown,over_7y,own,approved
+Female,22,9,2301,furniture,A32,moderate,under_1y,rent,approved
+Female,23,13,2101,tv,A32,little,under_1y,own,approved
+Female,24,6,433,education,A31,rich,under_1y,rent,denied
+FEMALE,26,30,4280,business,A30,moderate,1_to_4y,rent,denied
+male,26,21,5248,car_used,A32,unknown,1_to_4y,own,approved
+Male,39,15,1271,tv,A34,unknown,1_to_4y,free,denied
+male,30,30,1919,tv,A33,moderate,under_1y,own,denied
+male,31,24,3148,tv,A34,unknown,1_to_4y,own,approved
+Male,27,45,4576,car used,A34,moderate,unemployed,own,approved
+male,34,36,6614,car_new,A34,little,over_7y,own,approved
+Male,32,39,11760,education,A33,moderate,4_to_7y,rent,approved
+male,35,6,1204,car_new,A30,moderate,1_to_4y,rent,approved
+Male,28,6,484,tv,A32,little,4_to_7y,own,approved
+FEMALE,28,18,2278,car_new,A30,moderate,under_1y,own,denied
+Male,34,15,6850,car new,A31,moderate,,own,denied
+Female,27,10,2132,furniture,A34,unknown,under_1y,rent,approved
+male,34,21,1591,furniture,A33,moderate,4_to_7y,own,approved
+male,45,10,1287,car_new,A32,unknown,over_7y,own,approved
+Male,36,11,3905,car new,A34,little,1_to_4y,rent,approved
+Male,30,21,1602,car new,A34,little,,own,approved
+MALE,21,12,1289,furniture,A32,little,1_to_4y,own,approved
+Female,25,24,4736,furniture,A34,little,under_1y,own,denied
+male,35,12,976,tv,A34,unknown,over_7y,own,approved
+male,36,24,6967,business,A33,moderate,4_to_7y,rent,approved
+male,25,24,5511,furniture,A32,moderate,1_to_4y,own,approved
+male,38,48,3914,business,A32,unknown,1_to_4y,own,denied
+Female,32,24,1285,car new,A32,unknown,4_to_7y,rent,denied
+Male,38,24,1216,tv,A34,moderate,under_1y,own,denied
+FEMALE,49,12,1092,tv,A32,little,1_to_4y,own,approved
+Male,39,12,2122,car new,A34,little,1_to_4y,rent,approved
+MALE,21,45,3031,tv,A32,moderate,1_to_4y,rent,denied
+FEMALE,40,36,7678,furniture,A33,quite_rich,4_to_7y,own,approved
+female,74,9,5129,car_used,A31,little,over_7y,free,denied
+Female,35,24,1381,car new,A32,unknown,1_to_4y,own,denied
+Female,29,24,7758,car used,A34,rich,over_7y,rent,approved
+MALE,55,12,1555,repairs,A33,rich,over_7y,free,denied
+FEMALE,29,12,3499,car_new,A34,little,1_to_4y,own,denied
+MALE,38,12,2171,car_new,A34,little,1_to_4y,own,approved
+male,36,24,1275,business,A34,rich,,own,approved
+MALE,35,24,2397,tv,A32,quite_rich,over_7y,own,denied
+Male,26,36,4210,tv,A32,little,1_to_4y,own,denied
+MALE,49,24,2964,car_used,A32,unknown,over_7y,free,approved
+male,41,21,2580,business,A33,quite_rich,under_1y,own,denied
+male,28,18,2169,business,A33,little,1_to_4y,own,denied
+Male,26,12,1934,tv,A34,little,over_7y,own,approved
+male,24,36,9629,car_used,A34,little,4_to_7y,own,denied
+Male,38,30,10623,car used,A34,little,over_7y,free,approved
+MALE,28,24,1249,car_new,A32,little,under_1y,own,approved
+Female,21,60,10144,tv,A32,moderate,4_to_7y,own,approved
+MALE,32,10,2848,car_used,A32,moderate,1_to_4y,own,approved
+male,26,30,4272,business,A33,moderate,1_to_4y,own,approved
+MALE,23,12,1534,tv,A32,little,under_1y,rent,denied
+FEMALE,31,48,6758,tv,A32,little,1_to_4y,own,denied
+Male,49,12,2096,education,A34,little,4_to_7y,own,approved
+MALE,32,36,2273,education,A32,little,4_to_7y,own,approved
+Male,26,6,590,tv,A32,little,under_1y,own,approved
+MALE,60,12,2246,furniture,A34,little,over_7y,own,denied
+male,26,24,1311,tv,A32,moderate,4_to_7y,own,approved
+MALE,53,48,7119,furniture,A30,little,1_to_4y,free,denied
+female,21,18,1049,furniture,A34,little,under_1y,rent,approved
+Male,30,12,639,repairs,A32,little,1_to_4y,own,denied
+Male,24,24,1546,tv,A31,little,4_to_7y,rent,denied
+Female,24,15,1275,appliances,A32,unknown,1_to_4y,rent,denied
+MALE,47,15,1316,tv,A34,quite_rich,1_to_4y,own,approved
+MALE,28,12,776,tv,A32,little,1_to_4y,own,approved
+MALE,24,12,2214,tv,A32,little,1_to_4y,own,approved
+Male,44,18,6204,repairs,A33,little,1_to_4y,own,approved
+MALE,49,12,2331,tv,A34,unknown,over_7y,own,approved
+male,41,48,3979,tv,A32,unknown,4_to_7y,own,approved
+MALE,30,36,3959,furniture,A32,little,unemployed,own,approved
+Male,20,24,2996,furniture,A32,unknown,1_to_4y,own,denied
+male,31,18,3104,business,A30,little,4_to_7y,own,approved
+Male,25,24,1258,business,A32,little,4_to_7y,own,approved
+Male,36,36,3079,car new,A32,unknown,1_to_4y,own,approved
+MALE,39,6,426,tv,A30,little,over_7y,own,approved
+Male,43,24,4057,furniture,A32,little,4_to_7y,own,denied
+MALE,52,10,2315,tv,A32,little,over_7y,own,approved
+Male,27,15,2326,business,A34,quite_rich,1_to_4y,own,approved
+MALE,50,21,2241,furniture,A32,little,over_7y,own,approved
+male,45,39,8588,car_used,A32,moderate,over_7y,own,approved
+Male,35,33,7253,car used,A34,little,4_to_7y,own,approved
+Male,27,24,8648,business,A33,little,under_1y,own,denied
+male,68,6,14896,car_new,A32,little,over_7y,own,denied
+FEMALE,30,15,960,furniture,A33,rich,4_to_7y,own,approved
+MALE,30,26,7966,car_used,A32,little,under_1y,own,approved
+female,25,36,2394,tv,A32,unknown,1_to_4y,own,approved
+MALE,44,48,10127,car_new,A34,quite_rich,1_to_4y,free,denied
+FEMALE,41,42,5954,business,A34,little,4_to_7y,own,approved
+Male,37,24,1344,car new,A34,unknown,4_to_7y,own,denied
+MALE,33,9,3074,tv,A34,unknown,1_to_4y,own,approved
+FEMALE,23,18,1961,car_new,A32,little,over_7y,own,approved
+Female,50,36,2671,tv,A32,moderate,1_to_4y,free,denied
+Male,35,21,3976,furniture,A32,unknown,4_to_7y,own,approved
+Female,29,24,915,car new,A32,unknown,over_7y,own,denied
+male,34,15,1569,tv,A31,moderate,over_7y,own,approved
+FEMALE,24,30,4811,car_used,A32,unknown,4_to_7y,rent,approved
+Male,36,24,1278,tv,A32,little,over_7y,own,approved
+MALE,36,12,1542,business,A32,little,4_to_7y,own,approved
+Male,25,30,8072,business,A30,unknown,under_1y,own,approved
+male,25,18,866,tv,A32,little,1_to_4y,own,approved
+male,46,12,697,car_new,A31,little,under_1y,own,denied
+Female,26,48,9960,furniture,A32,little,under_1y,own,denied
+MALE,33,24,6403,tv,A33,little,under_1y,own,approved
+male,26,8,907,business,A32,little,under_1y,own,approved
+MALE,40,22,2675,tv,A32,quite_rich,over_7y,own,approved
+female,28,24,2603,car_used,A32,rich,1_to_4y,rent,approved
+Male,28,36,5371,furniture,A34,little,1_to_4y,own,approved
+MALE,39,18,1473,tv,A32,little,under_1y,own,approved
+male,54,24,717,car_new,A33,unknown,over_7y,own,approved
+male,29,24,6579,car_used,A32,little,unemployed,free,approved
+MALE,28,36,9398,car_used,A32,little,under_1y,rent,denied
+MALE,40,30,3857,car_used,A32,little,1_to_4y,own,approved
+MALE,30,21,12680,car_new,A34,unknown,over_7y,free,denied
+Male,34,6,1898,tv,A34,unknown,1_to_4y,own,approved
+MALE,49,30,8386,furniture,A34,little,4_to_7y,own,denied
+Male,55,42,9283,car used,A31,little,unemployed,free,approved
+Male,32,30,4583,furniture,A30,little,1_to_4y,own,approved
+female,23,10,1275,furniture,A32,little,under_1y,own,approved
+MALE,47,6,1209,car_new,A33,little,unemployed,own,denied
+female,20,24,1967,tv,A32,little,over_7y,own,approved
+MALE,49,12,5801,furniture,A34,unknown,over_7y,rent,approved
+Male,33,15,1478,tv,A33,little,1_to_4y,own,approved
+male,32,18,1301,tv,A32,little,over_7y,own,approved
+male,46,48,3931,car_new,A32,little,4_to_7y,free,denied
+MALE,51,9,2507,car_new,A32,quite_rich,over_7y,free,approved
+MALE,40,12,684,education,A32,little,1_to_4y,rent,denied
+FEMALE,25,36,7855,car_new,A34,little,1_to_4y,own,denied
+female,29,12,1893,car_new,A32,little,1_to_4y,own,approved
+male,35,24,4151,furniture,A33,moderate,1_to_4y,own,approved
+Male,32,18,629,tv,A34,quite_rich,over_7y,own,approved
+female,35,47,10722,car_new,A32,little,under_1y,own,approved
+MALE,48,12,1082,car_new,A30,little,1_to_4y,own,denied
+Male,31,24,4817,car new,A32,little,4_to_7y,own,denied
+male,36,18,884,car_new,A34,little,over_7y,own,denied
+Male,35,9,1919,furniture,A34,little,4_to_7y,rent,approved
+MALE,28,18,6260,car_new,A32,little,4_to_7y,rent,approved
+MALE,24,30,6187,car_used,A34,moderate,4_to_7y,rent,approved
+male,30,15,4657,car_used,A32,little,1_to_4y,own,approved
+male,41,12,719,education,A32,little,over_7y,own,denied
+male,32,9,2697,tv,A32,little,1_to_4y,own,approved
+male,28,36,9572,business,A33,little,under_1y,own,denied
+Male,42,60,10366,car new,A32,little,over_7y,,approved
+male,31,36,8947,car_used,A33,unknown,4_to_7y,own,approved
+female,45,36,3835,tv,A32,unknown,over_7y,own,approved
+Male,25,45,4746,tv,A34,little,under_1y,own,denied
+male,44,15,1478,furniture,A34,little,over_7y,own,approved
+Male,29,36,9034,furniture,A32,moderate,under_1y,rent,denied
+Male,30,36,11054,car used,A34,unknown,1_to_4y,own,approved
+male,40,21,1647,car_new,A31,unknown,1_to_4y,own,denied
+male,39,24,11938,other,A34,little,1_to_4y,own,denied
+male,24,36,5848,tv,A32,little,1_to_4y,own,approved
+male,40,21,1647,car_new,A31,unknown,1_to_4y,own,denied
+male,28,24,1413,tv,A32,little,1_to_4y,own,approved
+Male,23,45,1845,tv,A32,little,1_to_4y,free,denied
+MALE,29,24,2333,furniture,A33,unknown,under_1y,own,approved
+MALE,36,6,1238,retraining,A32,unknown,unemployed,own,approved
+Male,30,48,3566,business,A31,moderate,4_to_7y,,approved
+female,24,20,4272,furniture,A34,little,over_7y,own,approved
+MALE,29,6,2108,tv,A32,little,4_to_7y,rent,approved
+male,23,6,660,repairs,A32,quite_rich,4_to_7y,rent,approved
+male,27,12,1657,furniture,A32,little,1_to_4y,own,approved
+Male,57,36,14318,car new,A32,little,over_7y,free,denied
+MALE,39,11,7228,car_new,A34,little,1_to_4y,own,approved
+Male,31,6,1449,business,A33,moderate,over_7y,own,approved
+male,28,30,4249,car_new,A34,little,unemployed,own,denied
+MALE,31,36,4473,tv,A32,little,over_7y,own,approved
+FEMALE,22,9,1366,tv,A32,little,under_1y,rent,denied
+Male,43,24,4042,car used,A34,unknown,4_to_7y,own,approved
+MALE,60,24,2032,car_new,A33,little,over_7y,free,approved
+MALE,25,24,3105,tv,A32,unknown,under_1y,own,approved
+Female,58,48,6143,car used,A34,little,over_7y,free,denied
+male,35,36,6948,car_used,A32,little,1_to_4y,rent,approved
+MALE,36,24,4241,business,A30,little,1_to_4y,own,denied
+male,36,15,1721,car_new,A32,little,under_1y,own,approved
+male,44,12,1804,car_used,A34,moderate,under_1y,own,approved
+Female,53,30,7485,car used,A31,unknown,unemployed,own,denied
+FEMALE,19,9,1980,furniture,A32,little,under_1y,rent,denied
+MALE,53,24,2424,tv,A34,unknown,over_7y,own,approved
+male,35,10,1418,car_new,A32,moderate,1_to_4y,rent,approved
+male,57,12,709,tv,A32,little,over_7y,own,denied
+male,31,36,2302,tv,A32,little,1_to_4y,rent,denied
+FEMALE,67,9,1199,education,A32,little,4_to_7y,own,approved
+male,61,15,1512,repairs,A33,rich,1_to_4y,own,denied
+Male,35,24,4679,car used,A33,little,4_to_7y,own,approved
+MALE,27,60,14027,car_new,A32,little,4_to_7y,own,denied
+MALE,32,18,4594,tv,A32,little,under_1y,own,approved
+male,31,36,2302,tv,A32,little,1_to_4y,rent,denied
+male,40,24,1585,furniture,A34,little,4_to_7y,own,approved
+MALE,50,6,1236,car_used,A32,quite_rich,1_to_4y,rent,approved
+Male,42,36,3446,furniture,A32,little,over_7y,own,denied
+male,39,30,2522,tv,A32,little,over_7y,own,approved
+Male,24,12,1768,furniture,A32,little,1_to_4y,rent,approved
+male,31,24,3621,tv,A32,moderate,over_7y,own,denied
+Male,23,10,1048,tv,A31,little,1_to_4y,own,approved
+MALE,51,36,3342,tv,A34,unknown,over_7y,own,approved
+FEMALE,30,36,4795,tv,A32,little,under_1y,own,approved
+male,35,24,2684,tv,A34,little,1_to_4y,own,approved
+Male,31,12,3651,car new,A32,rich,1_to_4y,own,approved
+MALE,30,6,2063,tv,A32,little,under_1y,rent,approved
+FEMALE,23,36,6229,furniture,A34,little,under_1y,rent,denied
+Male,32,18,1880,tv,A34,little,4_to_7y,own,approved
+Male,64,24,2384,tv,A32,little,over_7y,rent,approved
+MALE,40,28,7824,car_used,A31,unknown,under_1y,rent,approved
+female,40,18,3001,furniture,A32,little,4_to_7y,rent,approved
+Female,44,8,760,tv,A32,little,4_to_7y,own,approved
+Male,42,4,1544,tv,A34,little,4_to_7y,own,approved
+female,24,15,2788,furniture,A34,little,4_to_7y,own,approved
+MALE,53,12,7865,furniture,A32,little,over_7y,free,denied
+Male,39,54,9436,car used,A30,unknown,1_to_4y,own,approved
+MALE,34,30,3496,furniture,A31,rich,1_to_4y,own,approved
+Male,31,18,1928,furniture,A34,little,under_1y,own,denied
+FEMALE,33,18,1042,car_new,A32,unknown,1_to_4y,own,denied
+MALE,35,18,3780,furniture,A34,little,under_1y,own,approved
+Female,24,6,1554,tv,A34,little,4_to_7y,rent,approved
+Male,23,18,1936,tv,A32,unknown,4_to_7y,rent,approved
+MALE,50,48,6224,education,A33,little,over_7y,free,denied
+male,66,12,1526,car_used,A34,little,over_7y,free,approved
+FEMALE,64,6,753,tv,A32,little,1_to_4y,own,approved
+Male,23,36,3913,tv,A32,little,1_to_4y,own,approved
+male,32,18,1530,car_new,A34,little,1_to_4y,own,denied
+Male,32,27,4526,furniture,A34,rich,under_1y,own,approved
+male,29,42,7166,tv,A32,unknown,4_to_7y,rent,approved
+Male,25,9,1138,tv,A34,little,1_to_4y,own,approved
+MALE,63,60,6836,business,A33,little,over_7y,own,denied
+male,26,12,759,car_new,A32,little,4_to_7y,own,denied
+Male,24,9,458,tv,A32,little,1_to_4y,own,approved
+MALE,34,6,1743,business,A33,moderate,1_to_4y,own,approved
+Female,34,24,2064,furniture,A33,little,unemployed,own,denied
+FEMALE,50,6,1047,education,A34,little,1_to_4y,own,approved
+MALE,32,12,6078,car_new,A32,little,4_to_7y,own,approved
+Male,27,12,1101,car new,A32,little,1_to_4y,own,approved
+MALE,35,9,2753,tv,A32,moderate,over_7y,own,approved
+MALE,29,24,11328,other,A32,little,1_to_4y,own,denied
+male,27,60,7418,tv,A33,unknown,1_to_4y,own,approved
+MALE,33,21,2319,education,A34,little,under_1y,rent,denied
+Male,44,24,2375,business,A33,quite_rich,1_to_4y,own,approved
+FEMALE,23,18,1943,repairs,A32,little,under_1y,own,denied
+Male,68,18,6761,car new,A32,unknown,1_to_4y,rent,denied
+Male,43,18,1533,furniture,A32,little,under_1y,own,denied
+MALE,45,24,2303,car_new,A32,little,over_7y,own,denied
+FEMALE,58,12,385,tv,A34,little,4_to_7y,own,approved
+male,47,24,5103,tv,A34,little,under_1y,free,approved
+male,37,15,802,tv,A32,little,over_7y,own,denied
+male,33,24,2058,repairs,A34,little,1_to_4y,own,approved
+FEMALE,38,24,1533,tv,A32,little,under_1y,own,approved
+Male,38,12,804,tv,A32,little,over_7y,own,approved
+male,55,24,6872,furniture,A31,little,under_1y,own,denied
+Male,30,36,4455,business,A33,little,1_to_4y,own,denied
+MALE,32,24,3062,furniture,A32,quite_rich,over_7y,rent,approved
+MALE,60,24,1940,car_new,A34,rich,over_7y,own,approved
+MALE,65,21,571,car_new,A34,little,over_7y,own,approved
+Male,46,7,730,tv,A34,unknown,over_7y,rent,approved
+MALE,43,12,4843,car_new,A34,little,over_7y,rent,denied
+male,63,24,2957,car_used,A34,little,over_7y,own,approved
+male,25,24,999,tv,A32,unknown,over_7y,own,approved
+male,34,18,1950,business,A32,little,4_to_7y,own,approved
+Male,37,36,7409,business,A32,unknown,over_7y,own,approved
+MALE,27,21,3652,business,A34,little,4_to_7y,own,approved
+Male,74,6,1299,car new,A34,little,1_to_4y,own,approved
+Male,29,15,3556,car new,A32,unknown,1_to_4y,own,approved
+MALE,74,24,4526,business,A34,little,1_to_4y,own,approved
+male,24,21,3763,car_new,A32,unknown,4_to_7y,own,approved
+MALE,33,8,1414,tv,A32,little,1_to_4y,own,approved
+female,57,30,3622,furniture,A32,rich,over_7y,rent,approved
+male,24,36,2145,business,A33,little,4_to_7y,own,denied
+Male,38,48,2751,car used,A34,unknown,over_7y,own,approved
+Female,35,24,2439,tv,A32,little,under_1y,own,denied
+female,26,15,1778,car_new,A30,little,under_1y,rent,denied
+male,38,6,368,tv,A32,unknown,over_7y,own,approved
+Male,33,18,1245,tv,A34,little,1_to_4y,own,denied
+male,35,24,2346,car_used,A34,little,4_to_7y,own,approved
+female,29,6,683,tv,A33,little,under_1y,own,approved
+MALE,40,30,3077,tv,A34,unknown,over_7y,own,approved
+MALE,34,36,5800,car_used,A34,little,1_to_4y,own,approved
+MALE,36,36,909,car_new,A32,quite_rich,over_7y,own,approved
+Male,58,54,15945,business,A30,little,under_1y,rent,denied
+male,25,48,14421,business,A30,little,1_to_4y,own,denied
+male,61,21,2767,business,A32,moderate,over_7y,rent,denied
+Male,23,24,1246,car new,A32,little,under_1y,own,denied
+FEMALE,64,10,1364,car_new,A32,little,1_to_4y,own,approved
+MALE,34,12,2759,furniture,A30,little,over_7y,own,approved
+Male,24,39,2569,car used,A32,quite_rich,1_to_4y,own,approved
+MALE,33,24,1474,car_new,A32,moderate,under_1y,own,approved
+MALE,42,18,4153,furniture,A32,little,1_to_4y,own,denied
+MALE,52,12,3077,tv,A32,little,1_to_4y,own,approved
+female,26,24,2812,car_used,A32,unknown,over_7y,rent,approved
+Male,46,21,2476,car used,A32,unknown,over_7y,own,approved
+FEMALE,25,24,1371,car_new,A32,unknown,1_to_4y,rent,denied
+Male,25,10,2210,furniture,A32,little,1_to_4y,rent,denied
+MALE,48,10,2241,car_new,A34,little,under_1y,rent,approved
+MALE,41,12,1503,car_used,A33,little,1_to_4y,rent,approved
+MALE,63,60,13756,car_new,A34,unknown,over_7y,free,approved
+male,28,6,1068,tv,A32,little,over_7y,own,approved
+Male,39,24,3345,furniture,A32,little,over_7y,rent,denied
+Male,36,24,2760,car used,A32,unknown,over_7y,free,approved
+Male,28,13,1797,business,A34,little,under_1y,own,approved
+male,45,6,1750,tv,A31,quite_rich,over_7y,own,approved
+Male,38,24,947,car new,A32,little,4_to_7y,free,denied
+Female,31,15,1532,education,A34,moderate,1_to_4y,own,approved
+female,60,60,14782,other,A31,moderate,over_7y,free,denied
+MALE,32,24,1938,tv,A32,little,under_1y,own,denied
+male,35,36,9055,education,A32,unknown,1_to_4y,free,approved
+Male,36,6,1872,furniture,A34,little,unemployed,free,approved
+MALE,48,9,1288,repairs,A34,moderate,over_7y,own,approved
+MALE,38,48,6681,business,A33,unknown,1_to_4y,free,approved
+Male,54,24,2255,car new,A32,unknown,under_1y,own,approved
+MALE,49,9,1126,tv,A32,moderate,over_7y,own,approved
+male,37,36,1819,education,A32,little,1_to_4y,free,denied
+MALE,38,36,5711,car_used,A34,rich,over_7y,own,approved
+MALE,52,9,936,education,A34,quite_rich,over_7y,own,approved
+Female,28,15,2631,car new,A32,moderate,1_to_4y,,denied
+MALE,28,36,3595,tv,A32,little,over_7y,own,approved
+female,33,9,3195,car_new,A32,unknown,1_to_4y,own,approved
+Male,35,15,1979,tv,A32,unknown,over_7y,own,approved
+Female,24,12,1228,car new,A32,little,1_to_4y,own,denied
+male,28,9,654,car_new,A32,little,1_to_4y,own,denied
+male,65,42,3394,repairs,A34,little,unemployed,own,approved
+MALE,47,8,731,car_new,A34,little,over_7y,own,approved
+male,46,48,6331,car_used,A34,little,over_7y,free,denied
+male,40,10,1597,car_new,A32,quite_rich,1_to_4y,rent,approved
+Male,23,15,3368,car used,A34,rich,over_7y,rent,approved
+Male,35,6,1050,furniture,A33,little,unemployed,own,approved
+Female,46,15,1845,furniture,A32,little,under_1y,rent,approved
+Male,35,12,691,car new,A34,little,over_7y,own,denied
+FEMALE,52,6,362,car_new,A34,moderate,1_to_4y,own,approved
+male,44,6,3384,furniture,A34,little,1_to_4y,rent,denied
+male,48,24,1024,tv,A33,little,under_1y,own,denied
+female,24,60,7408,car_new,A32,moderate,under_1y,own,denied
+Male,30,12,2121,car new,A34,little,1_to_4y,own,approved
+Female,24,18,1568,business,A32,moderate,1_to_4y,rent,approved
+MALE,25,9,2136,furniture,A32,little,1_to_4y,own,approved
+MALE,26,9,3577,car_new,A32,moderate,1_to_4y,rent,approved
+female,26,18,3114,furniture,A30,little,under_1y,rent,denied
+male,38,12,2859,car_new,A32,unknown,unemployed,own,approved
+MALE,28,12,939,car_new,A34,quite_rich,4_to_7y,own,denied
+MALE,31,36,9857,business,A33,moderate,,own,approved
+male,44,6,4716,car_new,A34,unknown,under_1y,own,approved
+Male,40,12,701,tv,A32,little,1_to_4y,own,approved
+FEMALE,26,12,1386,car_new,A32,quite_rich,1_to_4y,own,denied
+Female,19,12,983,furniture,A32,rich,under_1y,rent,approved
+Male,27,9,1082,tv,A32,little,over_7y,own,approved
+female,35,12,3447,retraining,A31,quite_rich,1_to_4y,own,approved
+male,26,24,1925,furniture,A32,little,1_to_4y,own,approved
+Female,38,18,12976,car used,A32,little,unemployed,free,denied
+male,54,24,1597,education,A34,little,over_7y,free,approved
+MALE,37,18,2100,tv,A32,little,1_to_4y,own,denied
+Female,48,10,1240,car new,A32,moderate,over_7y,free,denied
+male,25,18,2473,furniture,A32,little,unemployed,own,denied
+male,26,42,4370,tv,A33,little,4_to_7y,own,denied
+MALE,24,24,3021,furniture,A32,little,1_to_4y,rent,approved
+Male,47,48,3578,tv,A34,unknown,over_7y,own,approved
+male,27,14,802,car_new,A33,little,1_to_4y,own,approved
+male,37,48,10222,tv,A32,unknown,4_to_7y,own,approved
+male,46,18,1582,tv,A34,rich,over_7y,own,approved
+male,36,21,3275,car_used,A34,little,over_7y,own,approved
+female,29,15,3959,car_new,A32,little,1_to_4y,own,denied
+Male,24,48,6560,car new,A32,moderate,4_to_7y,own,denied
+female,30,18,1864,education,A34,moderate,1_to_4y,own,denied
+MALE,51,11,4771,tv,A33,little,4_to_7y,,approved
+MALE,47,30,3017,tv,A34,little,over_7y,own,approved
+Male,21,24,6568,business,A32,little,1_to_4y,own,approved
+Female,30,48,5096,furniture,A34,little,1_to_4y,own,denied
+female,25,12,2762,furniture,A32,unknown,over_7y,own,denied
+Male,27,10,1347,tv,A34,unknown,4_to_7y,own,approved
+Male,31,24,929,furniture,A32,unknown,4_to_7y,own,approved
+Male,30,30,2333,tv,A32,quite_rich,over_7y,own,approved
+Male,29,24,1901,tv,A32,moderate,1_to_4y,rent,approved
+female,30,36,8133,car_used,A32,little,1_to_4y,own,approved
+Male,29,20,2629,other,A33,little,1_to_4y,own,approved
+male,39,48,10297,car_used,A32,little,4_to_7y,free,denied
+Male,33,18,2051,tv,A32,little,under_1y,own,approved
+MALE,46,24,6842,car_used,A34,unknown,1_to_4y,own,approved
+female,32,48,18424,other,A30,little,1_to_4y,own,denied
+Male,29,12,3590,furniture,A32,little,1_to_4y,own,approved
+MALE,22,18,2462,furniture,A32,little,1_to_4y,own,denied
+MALE,36,12,1372,car_new,A32,little,4_to_7y,own,denied
+male,26,36,8229,car_used,A32,little,1_to_4y,own,denied
+MALE,25,18,3213,tv,A32,quite_rich,under_1y,rent,approved
+Male,27,24,5804,car used,A34,rich,1_to_4y,own,approved
+Female,32,24,1282,tv,A32,moderate,1_to_4y,own,denied
+Male,33,24,1851,tv,A34,little,4_to_7y,own,approved
+male,23,24,4110,furniture,A30,little,over_7y,rent,denied
+male,63,24,2924,car_used,A32,little,1_to_4y,own,approved
+FEMALE,30,24,7721,furniture,A32,unknown,under_1y,own,approved
+Male,49,10,1038,car new,A34,little,4_to_7y,own,approved
+Male,34,42,3965,tv,A32,little,under_1y,own,denied
+male,27,9,1391,business,A32,little,1_to_4y,own,approved
+Male,43,24,7393,car new,A32,little,1_to_4y,own,approved
+MALE,29,12,2149,tv,A31,little,1_to_4y,free,denied
+Male,27,24,3552,furniture,A31,little,4_to_7y,own,denied
+Male,61,12,1255,car new,A34,little,over_7y,own,approved
+male,38,12,708,furniture,A32,little,1_to_4y,own,approved
+male,30,12,2002,car_new,A32,little,4_to_7y,rent,approved
+Female,36,12,2247,car new,A33,little,1_to_4y,own,approved
+FEMALE,57,24,1258,tv,A32,quite_rich,1_to_4y,own,approved
+male,46,18,1149,tv,A34,rich,1_to_4y,own,approved
+male,42,48,7763,car_new,A32,little,over_7y,free,denied
+Male,47,12,958,car new,A34,little,4_to_7y,own,approved
+female,27,18,750,education,A32,little,unemployed,own,denied
+MALE,24,24,1747,furniture,A32,little,under_1y,own,approved
+Male,47,15,1213,tv,A32,quite_rich,over_7y,own,approved
+MALE,46,10,727,education,A32,quite_rich,over_7y,free,approved
+male,45,42,7882,furniture,A32,little,4_to_7y,free,approved
+MALE,31,48,6110,education,A34,little,1_to_4y,free,approved
+Male,42,4,1455,car new,A34,little,4_to_7y,own,approved
+male,66,12,1480,car_new,A34,quite_rich,unemployed,free,approved
+MALE,37,36,3535,car_new,A34,little,4_to_7y,own,approved
+male,36,18,1940,tv,A31,little,under_1y,free,approved
+MALE,31,24,1935,business,A34,little,over_7y,own,denied
+FEMALE,27,12,1185,business,A34,little,1_to_4y,own,approved
+FEMALE,20,15,3186,car_new,A32,rich,4_to_7y,rent,approved
+Male,43,27,2442,business,A34,little,over_7y,own,approved
+male,31,12,1410,retraining,A30,little,1_to_4y,own,approved
+MALE,20,12,1107,tv,A32,little,1_to_4y,rent,approved
+Female,38,12,926,car new,A34,little,unemployed,own,approved
+MALE,24,18,1800,tv,A34,little,1_to_4y,own,approved
+Female,42,27,8318,business,A30,little,over_7y,free,denied
+MALE,31,18,2775,car_new,A34,little,4_to_7y,own,denied
+male,32,6,2978,furniture,A32,quite_rich,1_to_4y,own,approved
+female,46,15,3594,car_used,A33,little,under_1y,own,approved
+Male,29,24,2896,tv,A32,moderate,under_1y,own,approved
+Male,28,24,2284,tv,A32,little,4_to_7y,own,approved
+MALE,29,36,5179,furniture,A32,little,4_to_7y,own,denied
+male,32,12,701,education,A34,little,1_to_4y,own,approved
+FEMALE,37,12,1274,car_new,A32,little,under_1y,own,denied
+Male,58,30,1867,tv,A32,unknown,over_7y,own,approved
+male,20,24,3617,furniture,A34,unknown,over_7y,rent,approved
+FEMALE,28,12,2073,tv,A32,moderate,1_to_4y,own,approved
+Male,27,36,2820,car new,A34,little,under_1y,own,denied
+Female,23,12,3573,tv,A34,little,1_to_4y,own,approved
+Male,26,6,783,car new,A31,unknown,1_to_4y,own,approved
+FEMALE,20,12,4675,car_used,A32,unknown,under_1y,rent,approved
+male,37,36,12389,car_new,A32,unknown,1_to_4y,free,denied
+Male,42,18,2427,business,A33,unknown,over_7y,own,approved
+Female,23,6,448,education,A32,little,under_1y,own,denied
+FEMALE,31,10,2901,car_used,A32,unknown,under_1y,rent,approved
+MALE,33,48,4844,business,A32,little,unemployed,rent,denied
+Female,23,12,1498,tv,A32,little,1_to_4y,own,approved
+male,44,12,1163,car_new,A34,quite_rich,1_to_4y,own,approved
+male,23,12,900,car_new,A32,unknown,1_to_4y,own,denied
+Male,33,42,6289,business,A30,little,under_1y,own,approved
+Male,31,30,3108,furniture,A32,little,under_1y,own,denied
+Male,36,6,700,tv,A34,unknown,over_7y,free,approved
+MALE,31,36,5742,business,A32,moderate,4_to_7y,own,approved
+MALE,33,36,2384,repairs,A32,little,under_1y,rent,denied
+Female,43,24,1516,tv,A34,rich,1_to_4y,own,approved
+MALE,27,48,10961,tv,A32,rich,4_to_7y,own,denied
+male,38,12,754,retraining,A32,unknown,over_7y,own,approved
+FEMALE,22,48,5951,tv,A32,little,1_to_4y,own,denied
+MALE,37,12,1922,furniture,A32,little,1_to_4y,own,denied
+MALE,66,30,1908,business,A33,little,over_7y,own,denied
+male,36,6,1374,furniture,A32,little,1_to_4y,own,approved
+male,43,24,2197,car_used,A34,unknown,4_to_7y,,approved
+female,33,18,3966,car_new,A34,little,over_7y,rent,denied
+male,37,10,1225,appliances,A32,little,1_to_4y,own,approved
+MALE,32,24,1552,tv,A32,little,4_to_7y,own,approved
+male,27,15,1053,tv,A32,little,under_1y,own,approved
+male,26,24,1201,car_new,A32,little,under_1y,own,approved
+male,24,36,2323,tv,A32,little,4_to_7y,rent,approved
+male,32,18,2662,car_new,A32,unknown,4_to_7y,own,approved
+male,51,6,1595,tv,A32,little,4_to_7y,own,approved
+MALE,54,48,3051,appliances,A32,little,1_to_4y,own,denied
+Female,25,18,1882,tv,A32,little,1_to_4y,rent,denied
+MALE,74,5,3448,business,A32,little,4_to_7y,own,approved
+MALE,41,6,662,car_new,A32,little,under_1y,own,approved
+Male,44,24,5507,repairs,A34,little,over_7y,free,approved
+female,26,12,763,furniture,A32,little,1_to_4y,own,approved
+Male,36,9,2799,car new,A34,little,1_to_4y,rent,approved
+Male,32,9,1136,education,A34,rich,over_7y,free,denied
+Male,26,12,2445,car used,A32,unknown,under_1y,rent,approved
+Male,32,21,2745,furniture,A34,rich,4_to_7y,own,approved
+Male,25,24,5152,tv,A32,little,4_to_7y,own,approved
+Male,36,36,6304,business,A34,unknown,over_7y,own,approved
+Male,41,18,6361,furniture,A34,little,over_7y,own,approved
+MALE,43,16,2625,car_new,A34,little,over_7y,rent,denied
+MALE,21,60,15653,tv,A33,little,4_to_7y,own,approved
+Male,27,60,9157,tv,A33,unknown,1_to_4y,free,approved
+Male,27,27,3416,tv,A32,little,1_to_4y,own,approved
+Female,20,24,2718,car new,A32,little,1_to_4y,rent,denied
+male,27,6,1221,furniture,A34,unknown,1_to_4y,own,approved
+MALE,27,12,1995,car_new,A34,moderate,under_1y,own,approved
+MALE,50,27,5293,business,A30,little,unemployed,own,denied
+Male,41,21,3160,tv,A32,unknown,over_7y,own,approved
+male,29,36,6887,education,A33,little,1_to_4y,own,denied
+MALE,27,24,6314,other,A34,little,unemployed,own,approved
+female,26,18,1453,tv,A32,little,under_1y,own,approved
+female,54,6,672,car_new,A32,little,unemployed,own,approved
+Male,24,48,4605,car used,A30,little,over_7y,free,denied
+male,30,24,3069,furniture,A32,moderate,over_7y,free,approved
+male,26,12,1330,car_new,A32,little,under_1y,own,approved
+MALE,28,48,3060,tv,A32,little,4_to_7y,own,denied
+male,23,15,1444,tv,A32,unknown,under_1y,own,approved
+Female,59,48,6416,business,A31,little,over_7y,rent,denied
+Male,47,18,3422,furniture,A32,little,over_7y,own,approved
+male,55,12,1413,car_used,A32,rich,4_to_7y,own,approved
+Male,52,24,2223,tv,A34,moderate,over_7y,own,approved
+Male,36,48,12169,car new,A31,unknown,unemployed,free,approved
+MALE,32,24,3863,business,A33,little,1_to_4y,free,approved
+male,36,20,7057,car_used,A33,unknown,4_to_7y,rent,approved
+Male,28,11,2142,business,A32,rich,over_7y,own,approved
+MALE,35,36,5842,car_used,A34,little,over_7y,own,approved
+male,26,21,3414,education,A33,little,under_1y,own,denied
+male,31,15,1360,tv,A34,little,1_to_4y,own,approved
+FEMALE,26,24,5433,car_used,A32,unknown,unemployed,rent,approved
+MALE,30,12,707,tv,A32,little,1_to_4y,own,approved
+FEMALE,25,21,1835,tv,A32,little,1_to_4y,own,denied
+FEMALE,23,15,3812,car_used,A32,moderate,under_1y,own,approved
+MALE,26,18,1345,tv,A32,little,1_to_4y,own,denied
+male,22,15,1514,repairs,A32,moderate,1_to_4y,own,approved
+female,28,24,4113,car_used,A32,quite_rich,under_1y,rent,denied
+MALE,35,12,3386,car_used,A32,little,over_7y,free,denied
+Male,34,24,2578,tv,A34,rich,over_7y,own,approved
+male,34,9,1337,tv,A30,little,under_1y,own,denied
+Male,22,12,1007,car new,A32,rich,1_to_4y,own,approved
+MALE,40,15,1386,tv,A32,unknown,1_to_4y,rent,approved
+Male,40,18,3590,business,A34,little,unemployed,own,approved
+MALE,60,24,1199,car_new,A34,little,over_7y,own,denied
+male,39,36,2299,tv,A32,quite_rich,over_7y,own,approved
+MALE,35,48,8858,car_used,A34,unknown,4_to_7y,free,approved
+male,43,18,2515,furniture,A32,little,1_to_4y,own,approved
+MALE,56,12,618,tv,A34,little,over_7y,own,approved
+MALE,39,18,6458,car_new,A31,little,over_7y,own,denied
+female,55,12,2578,furniture,A32,little,unemployed,free,approved
+male,33,12,2579,car_new,A32,little,under_1y,own,denied
+male,46,12,1223,car_new,A32,little,over_7y,rent,denied
+MALE,53,24,4870,car_new,A33,little,1_to_4y,free,denied
+Female,22,12,1567,tv,A32,little,1_to_4y,own,approved
+male,40,18,4297,furniture,A33,little,over_7y,own,denied
+Male,35,24,2670,car used,A32,little,over_7y,own,approved
+male,38,24,7814,car_used,A32,little,4_to_7y,own,approved
+Female,23,15,2511,car new,A32,little,unemployed,rent,approved
+MALE,45,36,10875,car_new,A33,little,over_7y,own,approved
+MALE,49,12,640,car_new,A32,little,1_to_4y,own,approved
+MALE,30,39,14179,furniture,A34,unknown,4_to_7y,own,approved
+MALE,30,39,14179,furniture,A34,unknown,4_to_7y,own,approved
+MALE,50,15,1537,tv,A34,unknown,over_7y,own,approved
+Female,20,15,2221,furniture,A32,quite_rich,1_to_4y,rent,approved
+FEMALE,22,18,1808,furniture,A33,little,4_to_7y,own,denied
+Male,42,12,522,tv,A34,quite_rich,over_7y,own,approved
+Male,31,9,2406,furniture,A34,little,unemployed,own,approved
+Male,43,24,1333,car new,A33,little,unemployed,free,denied
+Female,46,12,2251,furniture,A32,little,1_to_4y,own,approved
+FEMALE,33,18,1131,furniture,A32,little,unemployed,own,denied
+MALE,32,36,4686,car_used,A32,little,1_to_4y,free,approved
+MALE,30,18,1056,car_new,A34,little,over_7y,own,denied
+MALE,47,36,12612,education,A32,moderate,1_to_4y,free,denied
+MALE,37,12,3399,tv,A32,unknown,over_7y,own,approved
+MALE,36,18,5302,car_new,A34,little,over_7y,free,approved
+female,36,18,1028,car_new,A34,little,1_to_4y,own,approved
+Female,29,12,1412,business,A34,little,1_to_4y,own,approved
+male,38,12,1495,car_new,A34,little,over_7y,own,approved
+Female,28,9,745,tv,A32,little,1_to_4y,own,denied
+Male,31,20,6148,car used,A30,moderate,over_7y,own,approved
+female,23,12,841,business,A32,moderate,4_to_7y,rent,approved
+Male,43,12,1935,furniture,A34,little,over_7y,own,approved
+male,23,6,14555,car_new,A32,unknown,unemployed,own,denied
+Male,52,12,717,tv,A34,little,over_7y,own,approved
+MALE,32,24,2978,business,A33,unknown,,own,approved
+Male,34,48,3844,business,A30,moderate,4_to_7y,free,denied
+male,42,60,6288,education,A32,little,1_to_4y,free,denied
+Male,50,12,1574,furniture,A32,little,1_to_4y,own,approved
+MALE,54,24,4591,business,A32,rich,1_to_4y,own,denied
+MALE,51,24,2892,furniture,A32,little,over_7y,free,approved
+male,38,15,1308,repairs,A32,little,over_7y,own,approved
+Male,25,39,4933,tv,A34,little,4_to_7y,own,denied
+FEMALE,35,12,1592,furniture,A34,rich,4_to_7y,own,approved
+MALE,42,36,10477,car_used,A34,unknown,over_7y,free,approved
+male,50,24,3777,furniture,A34,rich,1_to_4y,own,approved
+male,29,18,1169,tv,A34,unknown,1_to_4y,own,approved
+FEMALE,29,36,3990,appliances,A31,unknown,under_1y,own,approved
+Female,29,24,1659,tv,A33,little,under_1y,rent,denied
+FEMALE,23,12,836,car_new,A32,moderate,under_1y,own,denied
+MALE,34,18,2864,furniture,A32,little,1_to_4y,own,denied
+MALE,40,15,1905,education,A32,little,over_7y,rent,approved
+female,24,12,626,tv,A31,little,1_to_4y,own,denied
+MALE,40,12,1155,tv,A32,little,over_7y,own,approved
+male,48,48,12204,business,A30,unknown,1_to_4y,own,approved
+male,47,24,2538,car_new,A33,little,over_7y,own,denied
+male,22,30,3832,furniture,A32,little,under_1y,own,approved
+MALE,27,24,4139,business,A34,moderate,1_to_4y,own,approved
+male,41,24,6313,car_used,A32,unknown,over_7y,own,approved
+female,35,12,1291,tv,A34,little,1_to_4y,own,approved
+Male,34,48,6999,tv,A32,little,4_to_7y,own,denied
+Male,34,18,2320,tv,A33,little,unemployed,own,approved
+Male,42,36,5493,car used,A32,little,over_7y,free,approved
+Female,53,12,795,education,A32,little,under_1y,own,denied
+FEMALE,24,18,3190,tv,A32,little,1_to_4y,own,denied
+male,25,15,975,furniture,A34,little,1_to_4y,own,approved
+male,49,12,1262,furniture,A32,unknown,over_7y,own,approved
+Female,34,24,1837,education,A31,little,4_to_7y,free,denied
+MALE,45,6,6761,car_new,A34,little,4_to_7y,own,approved
+Female,26,33,2764,business,A33,little,1_to_4y,own,approved
+MALE,49,30,3656,tv,A34,unknown,over_7y,own,approved
+Female,23,24,1442,car new,A32,little,4_to_7y,rent,denied
+MALE,28,12,3617,furniture,A34,little,over_7y,rent,approved
+Male,47,36,8335,car used,A32,unknown,over_7y,free,denied
+Female,24,24,1207,car new,A32,little,under_1y,rent,denied
+Male,34,60,6527,car new,A32,unknown,1_to_4y,free,approved
+male,50,48,7476,education,A32,little,4_to_7y,free,approved
+Female,23,10,2146,furniture,A34,little,under_1y,rent,approved
+female,34,9,1501,education,A34,little,over_7y,own,denied
+Male,51,8,1164,other,A34,little,over_7y,free,approved
+Female,22,18,433,tv,A32,little,unemployed,rent,denied
+MALE,45,14,8978,car_new,A32,little,over_7y,own,denied
+male,48,24,1743,tv,A34,little,over_7y,own,approved
+Male,32,18,1505,tv,A32,little,1_to_4y,free,approved
+Male,28,12,6199,tv,A30,little,1_to_4y,rent,denied
+Male,33,15,950,car new,A30,little,over_7y,rent,denied
+Male,26,15,2687,business,A32,little,4_to_7y,rent,approved
+female,22,9,1670,tv,A32,little,under_1y,own,denied
+female,23,18,1216,car_new,A32,little,under_1y,,denied
+male,46,24,2611,tv,A34,little,over_7y,,approved
+Male,27,10,1309,car new,A32,unknown,1_to_4y,own,denied
+MALE,37,12,3565,education,A34,unknown,under_1y,own,approved
+FEMALE,23,9,1236,appliances,A32,little,under_1y,rent,approved
+male,35,15,2728,tv,A34,unknown,4_to_7y,own,approved
+male,22,24,3149,furniture,A32,little,under_1y,free,approved
+FEMALE,29,21,3357,tv,A32,rich,under_1y,own,approved
+female,23,6,1352,car_used,A32,quite_rich,unemployed,rent,approved
+MALE,20,12,674,tv,A32,moderate,4_to_7y,own,denied
+MALE,26,12,1158,tv,A32,quite_rich,1_to_4y,own,approved
+MALE,36,15,1262,appliances,A32,quite_rich,4_to_7y,own,approved
+Male,41,6,2116,furniture,A32,little,1_to_4y,own,approved
+MALE,37,10,3949,car_new,A32,little,under_1y,own,approved
+Female,29,24,1193,car new,A31,little,unemployed,rent,denied
+Male,26,36,4463,tv,A33,little,1_to_4y,own,denied
+Male,43,18,2899,car new,A33,unknown,over_7y,own,approved
+Male,47,18,1984,furniture,A32,little,1_to_4y,free,approved
+MALE,39,12,1037,business,A32,moderate,4_to_7y,own,approved
+male,63,30,7596,car_used,A34,unknown,over_7y,own,approved
+MALE,23,48,15672,business,A32,little,1_to_4y,own,denied
+FEMALE,75,6,1374,car_new,A32,unknown,unemployed,own,approved
+MALE,46,48,7629,business,A34,unknown,over_7y,own,approved
+male,27,18,3850,car_used,A34,little,4_to_7y,own,approved
+Male,54,12,1409,car used,A34,little,over_7y,own,approved
+MALE,42,4,1503,tv,A34,little,4_to_7y,own,approved
+MALE,30,24,3349,furniture,A31,quite_rich,under_1y,free,denied
+FEMALE,34,24,1525,car_new,A32,rich,4_to_7y,own,approved
+male,42,6,1346,tv,A32,moderate,over_7y,free,approved
+male,33,6,1543,furniture,A32,rich,1_to_4y,own,approved
+Male,50,24,1559,business,A31,little,4_to_7y,own,approved
+Male,28,30,5234,car new,A34,little,unemployed,own,denied
+MALE,30,6,1740,tv,A34,little,over_7y,rent,approved
+Female,42,24,1965,car new,A33,unknown,1_to_4y,rent,approved
+MALE,38,10,1924,tv,A32,little,1_to_4y,own,approved
+male,24,72,5595,tv,A32,moderate,1_to_4y,own,denied
+male,31,24,1393,car_new,A32,little,1_to_4y,own,approved
+MALE,40,36,1977,education,A32,unknown,over_7y,own,denied
+Male,28,18,2659,furniture,A32,rich,1_to_4y,own,approved
+MALE,59,9,1364,tv,A32,little,4_to_7y,own,approved
+male,54,12,1318,car_new,A32,rich,over_7y,own,approved
+MALE,31,12,1963,tv,A32,little,4_to_7y,rent,approved
+Female,25,36,8065,education,A34,little,1_to_4y,own,denied
+male,51,18,7511,car_used,A32,unknown,over_7y,free,denied
+MALE,26,10,2069,furniture,A34,unknown,1_to_4y,own,approved
+male,29,9,1437,car_new,A31,moderate,4_to_7y,own,denied
+Male,38,18,3229,car used,A34,unknown,unemployed,own,approved
+MALE,24,36,9271,car_new,A32,little,4_to_7y,own,denied
+Male,33,12,727,tv,A32,moderate,under_1y,own,denied
+Male,40,48,5381,other,A32,unknown,unemployed,free,approved
+Male,40,18,7374,furniture,A34,little,unemployed,own,approved
+FEMALE,21,12,886,tv,A32,unknown,1_to_4y,own,approved
+male,28,12,1108,repairs,A30,little,4_to_7y,own,denied
+MALE,30,12,2028,car_used,A32,unknown,1_to_4y,own,approved
+MALE,22,9,276,car_new,A32,little,1_to_4y,,approved
+FEMALE,24,12,7472,car_new,A32,unknown,unemployed,rent,approved
+MALE,21,6,1766,furniture,A32,little,1_to_4y,rent,approved
+FEMALE,37,6,609,car_new,A34,little,4_to_7y,own,approved
+MALE,29,45,11816,business,A30,little,over_7y,rent,denied
+MALE,37,9,1154,tv,A34,little,over_7y,own,approved
+Female,29,12,1123,furniture,A32,quite_rich,1_to_4y,rent,denied
+female,23,33,4281,furniture,A34,quite_rich,1_to_4y,own,denied
+FEMALE,32,6,931,car_new,A31,moderate,under_1y,own,denied
+male,22,14,3973,car_new,A32,little,unemployed,free,approved
+male,20,9,1313,furniture,A32,little,over_7y,own,approved
+male,30,18,2249,car_new,A32,moderate,4_to_7y,own,approved
+Male,43,36,15857,other,A32,little,unemployed,own,approved
+male,48,9,2134,car_new,A34,little,1_to_4y,own,approved
+Male,43,12,1344,car new,A33,little,1_to_4y,own,approved
+male,40,6,1361,car_new,A34,little,under_1y,own,approved
+MALE,22,6,454,repairs,A32,little,under_1y,own,approved
+Female,30,9,918,furniture,A32,little,1_to_4y,own,denied
+Female,21,30,3441,furniture,A32,moderate,1_to_4y,rent,denied
+Female,23,24,3488,car used,A32,moderate,4_to_7y,own,approved
+male,46,15,1829,tv,A34,little,over_7y,own,approved
+male,25,12,685,car_new,A32,little,4_to_7y,own,denied
+Male,36,7,846,tv,A33,unknown,over_7y,free,approved
+Male,26,12,1076,business,A32,little,1_to_4y,own,approved
+MALE,21,12,902,retraining,A32,little,4_to_7y,rent,denied
+Female,23,18,976,car new,A32,little,under_1y,own,denied
+Male,31,48,7582,other,A33,moderate,unemployed,free,approved
+Male,36,12,2366,car new,A34,quite_rich,4_to_7y,own,approved
+Female,20,12,1282,furniture,A32,little,1_to_4y,rent,denied
+female,55,24,1603,tv,A32,little,over_7y,own,approved
+male,36,36,2337,tv,A34,little,over_7y,own,approved
+MALE,36,60,7297,business,A32,little,over_7y,rent,denied
+Female,39,21,1188,business,A32,little,over_7y,own,denied
+MALE,37,12,2279,tv,A32,unknown,1_to_4y,free,approved
+Female,20,18,2039,furniture,A32,little,1_to_4y,rent,denied
+Female,31,12,1736,furniture,A32,little,4_to_7y,own,approved
+MALE,28,12,3617,furniture,A34,little,over_7y,rent,approved
+Male,42,12,2292,business,A34,little,unemployed,own,denied
+Male,37,48,12749,tv,A33,quite_rich,4_to_7y,own,approved
+Male,63,10,781,car new,A34,little,over_7y,free,approved
+MALE,26,12,625,tv,A32,little,under_1y,own,approved
+Male,30,36,2862,car new,A33,moderate,over_7y,free,approved
+male,21,24,1987,tv,A32,little,1_to_4y,rent,denied
+male,23,12,1297,tv,A32,little,1_to_4y,rent,approved
+FEMALE,28,24,3660,tv,A32,little,1_to_4y,own,approved
+Male,38,24,3512,car new,A32,moderate,4_to_7y,own,approved
+male,42,12,2577,furniture,A32,little,,own,approved
+Male,38,30,5954,tv,A34,little,4_to_7y,own,approved
+Male,37,9,2118,tv,A32,little,1_to_4y,own,approved
+FEMALE,21,27,2570,car_new,A32,little,1_to_4y,rent,denied
+male,49,18,1445,tv,A31,unknown,4_to_7y,own,approved
+female,23,30,2406,furniture,A32,little,4_to_7y,rent,denied
+Male,26,6,3518,car new,A32,little,1_to_4y,rent,approved
+MALE,31,10,1546,car_new,A32,little,1_to_4y,own,approved
+Male,52,12,6468,tv,A32,unknown,unemployed,own,denied
+MALE,23,13,882,tv,A34,little,under_1y,own,approved
+male,35,9,1549,car_new,A32,unknown,under_1y,own,approved
+male,62,6,1338,appliances,A32,quite_rich,1_to_4y,own,approved
+FEMALE,34,36,1842,car_new,A32,little,under_1y,own,denied
+Male,20,12,585,tv,A33,little,1_to_4y,rent,approved
+male,23,27,2520,tv,A34,quite_rich,1_to_4y,own,denied
+MALE,33,18,4439,business,A32,little,over_7y,own,approved
+Male,44,20,3485,car new,A34,unknown,under_1y,own,approved
+female,25,15,2327,tv,A32,little,under_1y,own,denied
+male,33,24,5150,furniture,A34,little,over_7y,own,approved
+MALE,27,12,1168,car_new,A32,little,1_to_4y,own,approved
+Male,28,6,1323,car new,A34,moderate,over_7y,own,approved
+female,27,12,951,furniture,A32,moderate,under_1y,rent,denied
+MALE,35,18,4380,car_new,A32,moderate,1_to_4y,own,approved
+Female,32,6,4611,furniture,A32,little,under_1y,own,denied
+female,26,9,1388,furniture,A32,little,1_to_4y,rent,approved
+MALE,57,12,1264,business,A34,unknown,over_7y,rent,approved
+Male,36,18,4165,business,A30,little,1_to_4y,own,denied
+Male,47,12,1393,education,A32,little,over_7y,own,approved
+male,35,12,1680,tv,A32,quite_rich,over_7y,own,approved
+male,53,24,2835,furniture,A32,quite_rich,over_7y,own,approved
+MALE,39,20,2212,furniture,A32,unknown,4_to_7y,own,approved
+Male,46,36,2348,furniture,A34,little,1_to_4y,own,approved
+male,40,15,4623,education,A32,moderate,1_to_4y,own,denied
+Male,28,18,1887,business,A34,unknown,,own,approved
+Male,39,12,1884,car new,A32,little,over_7y,own,approved
+MALE,30,27,5965,car_used,A33,little,over_7y,own,approved
+female,33,12,797,tv,A34,unknown,over_7y,own,denied
+Male,29,4,1494,car new,A32,unknown,under_1y,own,approved
+Female,27,18,1924,furniture,A32,unknown,under_1y,,denied
+male,36,24,2872,tv,A34,moderate,over_7y,own,approved
+FEMALE,23,24,3234,furniture,A32,little,under_1y,rent,denied
