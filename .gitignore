@@ -2,6 +2,9 @@ venv/
 .venv/
 node_modules/
 .next/
+web/test-results/
+web/playwright-report/
+web/*.tsbuildinfo
 .env
 __pycache__/
 *.pyc
