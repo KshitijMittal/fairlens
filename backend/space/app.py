@@ -14,6 +14,7 @@ import os
 
 import gradio as gr
 import uvicorn
+from fastapi.responses import RedirectResponse
 
 from app.main import app as fastapi_app
 
@@ -24,9 +25,14 @@ def _page():
     return demo
 
 
-if __name__ == "__main__":
-    asgi = gr.mount_gradio_app(fastapi_app, _page(), path="/")
+@fastapi_app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse("/gradio")
 
+
+# Mount Gradio off the root and with SSR off: at "/" its routes (and the SSR node
+# front proxy) serve the SPA for every path, hiding /v1/*.
+if __name__ == "__main__":
     for name in ("SPACES_ZERO_GPU", "SPACES_ZERO_DEVICE_API_URL", "PORT", "GRADIO_SERVER_PORT"):
         print(f"env {name}={os.environ.get(name)}", flush=True)
 
@@ -58,4 +64,6 @@ if __name__ == "__main__":
         except Exception as exc:
             print(f"startup_report failed: {exc!r}", flush=True)
 
-    uvicorn.run(asgi, host="0.0.0.0", port=port)
+    uvicorn.run(gr.mount_gradio_app(fastapi_app, _page(), path="/gradio", ssr_mode=False,
+                                    server_port=port),
+                host="0.0.0.0", port=port)
