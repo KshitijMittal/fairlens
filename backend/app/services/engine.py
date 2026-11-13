@@ -304,6 +304,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
         "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "engine_version": ENGINE_VERSION,
         "duration_ms": int((time.perf_counter() - started) * 1000),
+        "seed": seed,
         "dataset": {
             "name": dataset_name,
             "sha256": hashlib.sha256(raw).hexdigest(),
