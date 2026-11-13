@@ -1,9 +1,11 @@
-"""G9: time the pipeline on the deployed Space.
+"""G9 (retired): the host benchmark recorded on 2026-11-01. Kept as evidence only.
+
+The M0 probe app and its /v1/dev/bench endpoint were replaced in M1, so this no
+longer runs against the deployed Space.
 
 Usage: python backend/scripts/bench_host.py https://<space>.hf.space
 
-Calls the Space's /v1/dev/bench twice in one process: the first pass is cold,
-the second warm. Pass condition: warm under 20 s, every pass under 55 s.
+Called /v1/dev/bench twice in one process: the first pass cold, the second warm.
 """
 import json
 import sys

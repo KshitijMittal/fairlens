@@ -1,7 +1,7 @@
-"""FairLens backend on a free Hugging Face Gradio Space (M0).
+"""FairLens backend on a free Hugging Face Gradio Space (M1).
 
 The real FastAPI app lives in backend/app; this file is only the mount
-wrapper the Gradio SDK needs. Probe endpoints are gone - replaced at M0.
+wrapper the Gradio SDK needs. Probe endpoints are gone.
 """
 import socket
 

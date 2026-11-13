@@ -272,6 +272,11 @@ create table analyses (
   encoding       jsonb not null,
   proxies        jsonb not null default '[]'::jsonb,
 
+  -- The exact AnalysisResult returned to the client (S8). The tables below and
+  -- analysis_checks/analysis_groups are the queryable projection; this column is
+  -- what a stored read returns, so a stored result cannot drift from a fresh one.
+  result         jsonb not null,
+
   verdict         text not null,
   -- Every check at the state that decided the verdict, C1..C5. Empty on a Pass.
   -- A cache owned by verdict.py; the consistency test lives in §3.3.
@@ -319,6 +324,7 @@ create index analyses_sample_idx       on analyses (is_sample)
 | `deciding_checks` empty on a Pass | Enforced by `analyses_deciding_checks_pass`. Under §8.5 a Pass means every check was judged and passed, so there is nothing to name |
 | `group_count` between 2 and 10 | Enforced in the database as well as the parser, because a bug that lets eleven groups through would break the layout and the checks |
 | `columns` jsonb | Names and types only. This is what the technical view and the fingerprint check read |
+| `result` jsonb | The payload exactly as the run returned it. `GET /v1/analyses/{id}` returns this column, so a stored read and a fresh read cannot drift (S8). `analysis_checks` and `analysis_groups` stay the queryable projection for history, repairs and the consistency check |
 | `seed` | The derived seed (TRD §6.2). Stored so a golden test can prove reproducibility, and so a repair can reuse the fold assignment (F6-AC2) |
 | `duration_ms` | Shown on the model card; also the first place to look when someone reports a slow run |
 
@@ -665,6 +671,7 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
   "created_at": "2026-10-27T09:14:22Z",
   "engine_version": "2.0.0",
   "duration_ms": 8421,
+  "seed": 3184221531,
 
   "dataset": {
     "name": "loans.csv",
@@ -847,12 +854,12 @@ Every query is a named file under `backend/app/db/queries/`, loaded at import, p
 | `sessions_delete.sql` / `sessions_delete_all_for_user.sql` | Logout, sign-out-everywhere | `/auth/logout`, password change |
 | `sessions_delete_expired.sql` | Sweep | container start, login |
 | `auth_tokens_insert.sql` / `auth_tokens_consume.sql` | Reset flow | `/auth/reset/*` |
-| `analyses_insert.sql` | One transaction: analysis + checks + groups | stream `saving` stage |
+| `analyses_insert.sql` | The analysis row, including the exact `AnalysisResult` that is returned to the client | stream `saving` stage; `Repository.create_analysis` writes checks and groups in the same transaction |
 | `narrative_insert.sql` / `narrative_by_analysis.sql` | The narrative, written after the metrics at the narration stage | stream `saving` (child write), report read |
 | `analyses_by_id.sql` / `analyses_for_user.sql` | Report and history | `GET /analyses/{id}`, `/history` |
 | `analyses_delete.sql` | Owner deletion | `DELETE /analyses/{id}` |
 | `analyses_by_share_token.sql` | Share read path | `/shared/{token}` |
-| `checks_by_analysis.sql` / `groups_by_analysis.sql` | Assembling `AnalysisResult` | every report read |
+| `checks_by_analysis.sql` / `groups_by_analysis.sql` | Per-check and per-group rows: the queryable projection of the stored payload | history, repairs, consistency check |
 | `repairs_delete.sql` / `repairs_insert.sql` / `repairs_by_analysis.sql` | The three-strategy comparison: read for the report, replaced as a set on re-run | `GET /analyses/{id}`, `/analyses/{id}/repairs` |
 | `chat_insert.sql` / `chat_by_analysis.sql` | Chat | `/analyses/{id}/chat` |
 | `shares_insert.sql` / `shares_by_hash.sql` / `shares_delete.sql` / `shares_touch.sql` | Share lifecycle | `/analyses/{id}/shares`, `/shared/{token}` |

@@ -1,8 +1,11 @@
-"""G2: make the deployed Space send one real email through Brevo.
+"""G2 (retired): the mail probe recorded on 2026-11-01. Kept as evidence only.
+
+The M0 probe app and its /v1/dev/mail-probe endpoint were replaced in M1, so this
+no longer runs against the deployed Space.
 
 Usage: python backend/scripts/mail_probe.py https://<space>.hf.space you@example.com
 
-Needs PROBE_TOKEN and BREVO_API_KEY/BREVO_SENDER set as Space secrets.
+Needed PROBE_TOKEN and BREVO_API_KEY/BREVO_SENDER set as Space secrets.
 Spaces block every port except 80, 443 and 8080, so SMTP is not an option.
 """
 import json

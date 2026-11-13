@@ -10,8 +10,9 @@ app_file: app.py
 pinned: false
 ---
 
-The FairLens analysis API (M0). It runs the three bundled samples through the real
-engine and serves the result over HTTPS; the web app is deployed separately.
+The FairLens analysis API (M1). It runs the three bundled samples through the real
+engine and serves the result over HTTPS, storing analyses in Neon Postgres; the web
+app is deployed separately.
 
 The SDK must stay on Gradio 6.x: Gradio 5 requires `pandas<3`, and the engine pins
 `pandas==3.1.0`.

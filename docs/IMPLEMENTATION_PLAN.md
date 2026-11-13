@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Version** | 1.3 (2 Nov: Day Zero complete; G1–G4 and G9 recorded in §2.2) |
-| **Status** | Decisions closed (5 of 5). Day Zero complete. M0 steps 1–12 complete and tested; deploy (step 13) pending approval. |
-| **Date** | 30 October 2026 |
+| **Version** | 1.5 (12 Nov: M1 verified locally - migrations, runner, read path, Docker and integration suite green; deploy pending) |
+| **Status** | M1 complete and verified locally. Deploy to the Space is pending explicit approval; M2 is next |
+| **Date** | 12 November 2026 |
 | **Baseline** | `docs/PRD.md` v2.3, `docs/TRD.md` v2.4, `docs/APP_FLOW.md` v2.3, `docs/UI_UX.md` v2.2, `docs/BACKEND_SCHEMA.md` v2.2 |
 | **Relationship to the TRD** | TRD §13.2 names the milestones. This document makes each one executable: files, commands, tests, and what to drop |
 
@@ -68,6 +68,8 @@ A gate is passed by a recorded measurement, not an opinion. Each row names the c
 | **G9** | Can the host run the pipeline's heaviest operations inside the budget? | `python backend/scripts/bench_host.py https://<space>`: a synthetic 50,000 × 60 frame, CSV round-trip, 5-fold logistic regression, 1,000 bootstrap resamples, SHAP on 500 rows | Warm under **20 s** (F3-AC6) and every run under **55 s** (TRD §6.1). Cold and warm both recorded | Reduce the SHAP sample from 500 to 200 rows. If still over, the sampling offer becomes mandatory at 25,000 rows — a PRD change, not a silent tweak |
 
 **Recorded result.** The five outcomes go into the table below before M0 begins: date, host, numbers, fallback taken or not. A gate with no recorded number has not been run.
+
+The commands above name the M0 probe. Its `/v1/dev/*` endpoints were replaced in M1, so the rows below are the recorded evidence, kept as history, and are not re-runnable against the current app.
 
 | Gate | Date | Host | Measurement | Fallback taken |
 |---|---|---|---|---|
@@ -175,7 +177,7 @@ The page shows `PASS` and all five checks for the scholarship sample.
 | Migrations | `0001`–`0014`, applied at boot under an advisory lock (TRD §12.1) |
 | Queries | `analyses_insert`, `analyses_by_id`, `checks_by_analysis`, `groups_by_analysis` |
 | Save | The `saving` stage writes analysis, checks and groups in one transaction; the narrative follows at the narration stage through `narrative_insert.sql` |
-| Read | `GET /v1/analyses/{id}` assembles the same `AnalysisResult` from the tables, through one builder shared with the stream |
+| Read | `GET /v1/analyses/{id}` returns the stored `result` column: the same object the run returned, so a stored read cannot drift from a fresh one. `analysis_checks` and `analysis_groups` stay the queryable projection |
 | History skeleton | `top_level_analyses` view plus a minimal list, no styling |
 
 **Exit check**
@@ -193,10 +195,12 @@ psql "$DATABASE_URL" -c "select count(*) from analyses"
 - `tests/integration/test_immutability.py` — `UPDATE` on each of the four tables raises `restrict_violation`; `DELETE` still cascades.
 - `tests/integration/test_deciding_checks.py` — the §3.3 consistency query returns zero rows for a batch of fixtures.
 - `tests/integration/test_top_level.py` — a child analysis does not appear in the history view.
-- `tests/test_anonymous_cache.py` — an anonymous sample run writes zero rows and is still readable by its run id; after expiry the id 404s.
-- `tests/test_roundtrip.py` — the stored result and the streamed result serialise identically (S8).
+- `tests/integration/test_anonymous_cache.py` — an anonymous sample run writes zero rows and is still readable by its run id; after expiry the id 404s.
+- `tests/integration/test_roundtrip.py` — the stored result and the streamed result serialise identically (S8).
 
 **If it runs long:** drop the history list. The report read is what proves the schema.
+
+**Status: COMPLETE (local, deploy pending).** All fourteen migrations apply from an empty database under the advisory lock; a changed checksum fails startup; the stored payload round-trips exactly; 12 integration tests and 23 unit tests are green; `docker compose up -d --build` serves `/v1/health` with `"database": true`. The Space deploy waits for explicit approval because it needs the database secrets.
 
 ---
 
@@ -493,13 +497,13 @@ Each feature's criteria are asserted in the file named against it; a criterion w
 |---|---|---|
 | F1 upload and ingest | M2 | `tests/test_parsing.py`, `tests/test_sampling.py`, `web/e2e/upload.spec.ts` |
 | F2 confirmation | M2 | `tests/test_detection.py`, `web/e2e/upload.spec.ts` |
-| F3 run the analysis | M0–M3 | `tests/test_golden_*.py`, `tests/test_roundtrip.py`, `tests/test_influence.py`, `web/e2e/traceability.spec.ts` |
+| F3 run the analysis | M0–M3 | `tests/test_golden_*.py`, `tests/integration/test_roundtrip.py`, `tests/test_influence.py`, `web/e2e/traceability.spec.ts` |
 | F4 summary view | M3 | `web/e2e/verdicts.spec.ts`, `web/e2e/traceability.spec.ts`, `web/e2e/inconclusive.spec.ts` |
 | F5 technical view | M3 | `web/e2e/traceability.spec.ts`, `web/e2e/report.spec.ts`, `tests/test_influence.py` |
 | F6 repairs | M4 | `tests/test_repairs.py`, `web/e2e/repairs.spec.ts` |
 | F7 report, share, print | M5 | `web/e2e/share.spec.ts`, `web/e2e/print.spec.ts` |
 | F8 accounts | M2, M8 | `tests/integration/test_auth.py`, `tests/test_log_hygiene.py`, `tests/test_startup.py` |
-| F9 history and deletion | M1, M5 | `tests/integration/test_cascade.py`, `tests/test_anonymous_cache.py`, `web/e2e/history.spec.ts`, `web/e2e/account.spec.ts` |
+| F9 history and deletion | M1, M5 | `tests/integration/test_cascade.py`, `tests/integration/test_anonymous_cache.py`, `web/e2e/history.spec.ts`, `web/e2e/account.spec.ts` |
 | F10 narrative and chat | M6 | `tests/test_llm_guard.py`, `tests/test_chat_scope.py`, `tests/integration/test_llm_cache.py`, `web/e2e/narrative.spec.ts` |
 | F11 bundled samples | M0, M7 | `tests/test_golden_scholarship.py`, `tests/test_golden_samples.py` |
 | F12 abuse protection | M8 | `tests/integration/test_rate_limit.py`, `tests/test_upload_guard.py` |
