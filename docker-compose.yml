@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    container_name: fairlens-db
+    environment:
+      POSTGRES_USER: fairlens
+      POSTGRES_PASSWORD: fairlens
+      POSTGRES_DB: fairlens
+    volumes:
+      - fairlens_pgdata:/var/lib/postgresql/data
+    ports:
+      # 5433 on the host: 5432 is often already taken by another local Postgres.
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fairlens -d fairlens"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: fairlens-api
+    environment:
+      - DATABASE_URL=postgresql://fairlens:fairlens@db:5432/fairlens
+      - DATABASE_URL_UNPOOLED=postgresql://fairlens:fairlens@db:5432/fairlens
+      - ENV=production
+      - HF_TOKEN=${HF_TOKEN}
+      - BREVO_API_KEY=${BREVO_API_KEY}
+      - BREVO_SENDER=${BREVO_SENDER}
+    ports:
+      - "7860:7860"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  fairlens_pgdata:
