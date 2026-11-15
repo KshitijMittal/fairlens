@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Version** | 1.5 (12 Nov: M1 verified locally - migrations, runner, read path, Docker and integration suite green; deploy pending) |
-| **Status** | M1 complete and verified locally. Deploy to the Space is pending explicit approval; M2 is next |
-| **Date** | 12 November 2026 |
+| **Version** | 1.6 (13 Nov: M1 deployed and verified live on the Space and Neon) |
+| **Status** | M1 complete and deployed. M2 complete locally; deployment pending |
+| **Date** | 13 November 2026 |
 | **Baseline** | `docs/PRD.md` v2.3, `docs/TRD.md` v2.4, `docs/APP_FLOW.md` v2.3, `docs/UI_UX.md` v2.2, `docs/BACKEND_SCHEMA.md` v2.2 |
 | **Relationship to the TRD** | TRD §13.2 names the milestones. This document makes each one executable: files, commands, tests, and what to drop |
 
@@ -62,10 +62,10 @@ A gate is passed by a recorded measurement, not an opinion. Each row names the c
 | # | Question | Command | Pass | If it fails |
 |---|---|---|---|---|
 | **G1** | Does the Vercel rewrite pass an NDJSON stream through unbuffered? | `curl.exe -N https://<app>/v1/dev/stream-probe` | Three frames arrive spread over at least two seconds | Ship with `NEXT_PUBLIC_ANALYSIS_STREAMING=0`: one JSON body and a spinner. The verdict is unchanged |
-| **G2** | Can the Space send reset mail? Spaces allow only ports 80, 443 and 8080, so there is no SMTP | `python backend/scripts/mail_probe.py https://<space> you@example.com` | The message arrives | Brevo is the design, not a fallback. If the sender is rejected, verify it in Brevo; the app still starts and logs the failure |
+| **G2** | Can the Space send reset mail? Spaces allow only ports 80, 443 and 8080, so there is no SMTP | Send one message through the M0 probe app's `/v1/dev/mail-probe` | The message arrives | Brevo is the design, not a fallback. If the sender is rejected, verify it in Brevo; the app still starts and logs the failure |
 | **G3** | Does a 60 MB body survive the rewrite? | `curl.exe -F "file=@samples/_gate/big.csv" https://<app>/v1/dev/echo-size` | The endpoint reports 62,914,560 bytes | Uploads go direct to the Space with a one-time ticket. This is the expensive fallback and the reason the gate is on day zero |
 | **G4** | Do SHAP and fairlearn install and import on the Space's Python? | Push the probe, then `curl.exe https://<space>/v1/health` | Both versions are reported; neither says `unavailable` | Pin Python 3.11 in the Space's README. If SHAP still fails, influence is marked unavailable (F3-AC5) and the verdict is unaffected |
-| **G9** | Can the host run the pipeline's heaviest operations inside the budget? | `python backend/scripts/bench_host.py https://<space>`: a synthetic 50,000 × 60 frame, CSV round-trip, 5-fold logistic regression, 1,000 bootstrap resamples, SHAP on 500 rows | Warm under **20 s** (F3-AC6) and every run under **55 s** (TRD §6.1). Cold and warm both recorded | Reduce the SHAP sample from 500 to 200 rows. If still over, the sampling offer becomes mandatory at 25,000 rows — a PRD change, not a silent tweak |
+| **G9** | Can the host run the pipeline's heaviest operations inside the budget? | The M0 probe app's `/v1/dev/bench`, run twice in one process, over a synthetic 50,000 × 60 frame: CSV round-trip, 5-fold logistic regression, 1,000 bootstrap resamples, SHAP on 500 rows | Warm under **20 s** (F3-AC6) and every run under **55 s** (TRD §6.1). Cold and warm both recorded | Reduce the SHAP sample from 500 to 200 rows. If still over, the sampling offer becomes mandatory at 25,000 rows — a PRD change, not a silent tweak |
 
 **Recorded result.** The five outcomes go into the table below before M0 begins: date, host, numbers, fallback taken or not. A gate with no recorded number has not been run.
 
@@ -74,10 +74,10 @@ The commands above name the M0 probe. Its `/v1/dev/*` endpoints were replaced in
 | Gate | Date | Host | Measurement | Fallback taken |
 |---|---|---|---|---|
 | G1 | 2026-11-01 | Vercel rewrite → Space (`web-sigma-roan-24.vercel.app/api/v1/dev/stream-probe`) | 3 NDJSON frames at 1.29 / 1.80 / 2.31 s (~0.5 s apart), `application/x-ndjson` preserved; unbuffered | none |
-| G2 | 2026-11-01 | Space → Brevo HTTPS API | `mail_probe.py` returns 202; message received at the verified sender's inbox | none (Brevo IP restriction disabled — Spaces egress IPs are dynamic and cannot be whitelisted) |
+| G2 | 2026-11-01 | Space → Brevo HTTPS API | `/v1/dev/mail-probe` returns 202; message received at the verified sender's inbox | none (Brevo IP restriction disabled — Spaces egress IPs are dynamic and cannot be whitelisted) |
 | G3 | 2026-11-01 | Vercel rewrite → Space (`/api/v1/dev/echo-size`) | reports 62,914,560 bytes; HTTP 200 in 13.6 s | none |
 | G4 | 2026-11-01 | `kshitijmittal07-fairlens-probe.hf.space` (ZeroGPU, Python 3.12.12) | `/v1/health` reports shap 0.54.1, fairlearn 0.15.0; neither `unavailable` | none |
-| G9 | 2026-11-01 | `kshitijmittal07-fairlens-probe.hf.space` (ZeroGPU) | `bench_host.py`: cold 5.4 s, warm 5.56 s (budget 55 s / 20 s) | none |
+| G9 | 2026-11-01 | `kshitijmittal07-fairlens-probe.hf.space` (ZeroGPU) | `/v1/dev/bench`: cold 5.4 s, warm 5.56 s (budget 55 s / 20 s) | none |
 
 **Time box: half a day.** The probe deploy is the thinnest possible application: `/v1/health`, `/v1/dev/stream-probe`, `/v1/dev/echo-size`, `/v1/dev/bench`, `/v1/dev/mail-probe`, and a page that renders one line. It is thrown away at M0 and rebuilt properly, which is cheaper than discovering G3 after the upload component exists.
 
@@ -105,7 +105,8 @@ fairlens/
 │  ├─ lib/                       generated API client, theme resolution
 │  └─ e2e/                       Playwright specs named in §6
 ├─ samples/                      the three bundled CSVs, also the test fixtures
-├─ scripts/                      bench_host.py, mail_probe.py, seed.py
+├─ backend/scripts/              deploy_space.py (Space push), make_big_csv.py (G3 fixture)
+├─ scripts/                      make_samples.py (regenerates the bundled samples)
 ├─ .github/workflows/            ci.yml, keep-alive.yml
 ├─ docker-compose.yml            postgres:16 + api + web
 └─ docs/                         these six documents
@@ -200,7 +201,7 @@ psql "$DATABASE_URL" -c "select count(*) from analyses"
 
 **If it runs long:** drop the history list. The report read is what proves the schema.
 
-**Status: COMPLETE (local, deploy pending).** All fourteen migrations apply from an empty database under the advisory lock; a changed checksum fails startup; the stored payload round-trips exactly; 12 integration tests and 23 unit tests are green; `docker compose up -d --build` serves `/v1/health` with `"database": true`. The Space deploy waits for explicit approval because it needs the database secrets.
+**Status: COMPLETE (deployed).** All fourteen migrations apply from an empty database under the advisory lock; a changed checksum fails startup; the stored payload round-trips exactly; 12 integration tests and 23 unit tests are green; `docker compose up -d --build` serves `/v1/health` with `"database": true`. Live on `kshitijmittal07-fairlens-probe.hf.space`: `/v1/health` reports `"database": true`, the three samples return `pass` / `fail` / `warn` with a recorded `seed`, stored reads return 200, unknown and malformed ids return 404, and Neon holds 14 migrations and 14 public tables. Anonymous sample runs stay in the in-process cache and are never written to the database.
 
 ---
 
@@ -213,16 +214,18 @@ psql "$DATABASE_URL" -c "select count(*) from analyses"
 | Auth | Signup, login, logout, sessions, `/v1/me`; Google as a second method; reset by Brevo HTTPS per G2 |
 | Upload | 50 MB / 100,000 rows / 60 columns guards in the order of TRD §11.2; delimiter and encoding detection (F1-AC1) |
 | Confirmation | Deterministic column detection, the one card, the `Change` disclosure, the five refusal cases (F2) |
-| Choices | Sampling above 50,000 rows; XLSX sheet choice |
-| Streaming | The six-stage NDJSON log, fold lines, `ping`, buffered fallback behind the env flag |
+| Choices | Sampling above 50,000 rows; XLSX sheet choice with the first sheet preselected |
+| Streaming | The six-stage NDJSON log, `ping`, buffered fallback behind the env flag |
 
 **Exit check**
 
 ```
-curl.exe -s -o NUL -w "%{http_code}" -F "file=@samples/loans.csv" https://<app>/v1/analyses
+curl.exe -s -o NUL -w "%{http_code}" -F "file=@samples/loan_approvals.csv" https://<app>/v1/analyses
 # 401
 
-curl.exe -s -b cookies.txt -F "file=@samples/loans.csv" https://<app>/v1/analyses --no-buffer
+curl.exe -s -b cookies.txt -F "file=@samples/loan_approvals.csv" \
+  -F 'confirmations={"outcome":"decision","positive":"approved","group":"gender"}' \
+  https://<app>/v1/analyses --no-buffer
 # stage frames, then result
 ```
 
@@ -238,6 +241,8 @@ curl.exe -s -b cookies.txt -F "file=@samples/loans.csv" https://<app>/v1/analyse
 - `web/e2e/anonymous.spec.ts` — signed-out dropzone triggers no upload request (A2).
 
 **If it runs long:** Google sign-in goes (it is second on the cut line). Email and password stay.
+
+**Status: COMPLETE locally; deployment pending.** Auth, upload, confirmation, sampling, XLSX sheet choice, streaming, password reset and the three Playwright flows pass locally: 70 unit tests, 23 integration tests (real HTTP against Postgres 16), and 3 Playwright specs. The suite was run on Python 3.12 dependencies with `shap` 0.54.1. Not verified: the Vercel rewrite passing the stream unbuffered (G1), because the frontend is not deployed; the buffered fallback behind `NEXT_PUBLIC_ANALYSIS_STREAMING=0` covers the risk.
 
 ---
 
@@ -464,7 +469,7 @@ Each row is one transition from App Flow §5. The test name is the file and the 
 | 5 | inspecting → inspect ok → confirmation | `upload.spec.ts › valid file shows card` |
 | 6 | inspecting → inspect failed → error, file kept | `upload.spec.ts › corrupt file keeps the file` |
 | 7 | inspecting → over 50k → sampling choice | `upload.spec.ts › large file offers sample` |
-| 8 | inspecting → XLSX several sheets → sheet choice | `upload.spec.ts › sheet picker appears` |
+| 8 | inspecting → XLSX several sheets → sheet choice | `tests/test_upload_guard.py › xlsx reads the named sheet` |
 | 9 | confirmation → Change → changing | `upload.spec.ts › change reveals selectors` |
 | 10 | confirmation → run → running | `upload.spec.ts › run starts the log` |
 | 11 | changing → run → running | `upload.spec.ts › run from changing uses the edits` |

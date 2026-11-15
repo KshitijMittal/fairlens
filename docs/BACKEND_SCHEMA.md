@@ -680,6 +680,7 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
     "columns": 8,
     "column_names": ["applicant_id", "…"],
     "is_sample": false,
+    "sheet": null,
     "sample": null
   },
 
@@ -689,7 +690,7 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
                   "values": [ { "label": "female", "n": 318 },
                               { "label": "male",   "n": 582 } ] },
     "age_banding": { "applied": true,
-                     "bands": ["18–24","25–34","35–44","45–54","55–64","65+"] },
+                     "bands": [ { "band": "18-29", "n": 96, "positives": 41 } ] },
     "factor_columns": 6
   },
 

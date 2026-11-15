@@ -44,7 +44,7 @@
                                 ▼
                     ┌──────────────────────────────┐
                     │  run log  (inline on /)       │
-                    │  six stages + fold progress   │
+                    │  six stage lines             │
                     │  [Cancel]                     │
                     └───────┬──────────────┬────────┘
                        error│              │result
@@ -365,11 +365,11 @@ The log is an appended list, not a checklist. Upcoming stages are never pre-reve
 
 | Property | Behaviour |
 |---|---|
-| Line set | Six stages — reading, cleaning, training, checking the groups, measuring what drove the decisions, writing the report — plus `fold n of 5` lines **only** inside training |
+| Line set | Six stages — reading your file, cleaning and encoding, training the stand-in model, measuring fairness, computing feature influence, saving results. No per-fold lines: the folds finish inside the training stage |
 | Appearance | New line animates in at the bottom; the line above fades to grey and stays. The block has a fixed height and scrolls so the newest line stays visible, so the page never jumps |
 | Indicator | A small animated element on the live line. CSS animation, no image asset, and it stops entirely under `prefers-reduced-motion` |
 | Accessibility | `aria-live="polite"` on the log container. The current stage is also the text of the line, so nothing depends on the animation |
-| Content rule | **No numbers and no findings.** Eleven frames total. A figure in the log is a defect — it either spoils the verdict or puts a number where no later screen will show it |
+| Content rule | **No numbers and no findings.** Seven frames total: six stages and one result. A figure in the log is a defect — it either spoils the verdict or puts a number where no later screen will show it |
 | Idle protection | A server `ping` frame every 5 seconds keeps the connection observably alive; the client shows nothing for it |
 | Cancellation | Cancel aborts the request and returns to the confirmation card with everything intact |
 | Buffered proxy | If TRD Gate G1 finds the proxy buffers, frames arrive together at the end and the log renders **all lines complete at once**. It must not replay them slowly to imitate liveness |

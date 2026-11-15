@@ -84,12 +84,15 @@ npm run dev
 | `DATABASE_URL` | Yes | Pooled Postgres connection string |
 | `DATABASE_URL_UNPOOLED` | Yes | Direct Postgres connection for migrations |
 | `ENV` | No | `development` by default; `production` on the Space |
+| `APP_ORIGIN` | Yes | Public web origin, used for reset links and the Google callback |
+| `API_ORIGIN` | Yes (web) | Backend origin the server-rendered report page reads from; defaults to `http://localhost:7860` |
 | `HF_TOKEN` | Deploy only | Hugging Face token; never read by the app |
+| `GOOGLE_CLIENT_ID` | Optional | Google OAuth client; sign-in is hidden when unset |
+| `GOOGLE_CLIENT_SECRET` | Optional | Google OAuth secret |
 | `BREVO_API_KEY` | M2 | Brevo API key for password reset emails |
 | `BREVO_SENDER` | M2 | Verified sender address in Brevo |
 | `GEMINI_API_KEY` | M6 | AI narrative (optional; template works without) |
 | `OPENROUTER_API_KEY` | M6 | Fallback AI provider |
-| `RATE_LIMIT_PEPPER` | M8 | Rate-limit pepper |
 
 Copy `.env.example` to `.env` and fill in values. The app starts in template-fallback mode if AI keys are missing.
 
@@ -99,8 +102,8 @@ Copy `.env.example` to `.env` and fill in values. The app starts in template-fal
 |---|---|---|
 | **Day Zero** | ✅ Complete | Repo reset, five gates passed (G1–G4, G9) on free stack |
 | **M0 — Walking Skeleton** | ✅ Complete | One sample analysed through deployed stack, tests passing |
-| **M1 — Database** | ✅ Complete (local) | 14 migrations, runner with advisory lock and checksum guard, repository, stored-payload read path, Docker + compose, 12 integration tests green. Space deploy pending |
-| **M2 — Accounts, Upload, Confirmation** | ⏳ Pending | Auth, upload guards, confirmation card, streaming log |
+| **M1 — Database** | ✅ Complete | 14 migrations, runner with advisory lock and checksum guard, repository, stored-payload read path, Docker + compose, 12 integration tests green. Deployed: live `/v1/health` reports `"database": true`, samples return pass/fail/warn, Neon holds 14 migrations |
+| **M2 — Accounts, Upload, Confirmation** | ✅ Complete locally | Signup/login/logout, sessions, `/v1/me`, Google OAuth, password reset, upload guards, confirmation card with refusal, sampling and XLSX sheet choice, streamed six-stage log with `ping`, buffered fallback. 70 unit + 23 integration tests and 3 Playwright specs pass locally; Space deployment pending |
 | **M3 — Verdict Interface** | ⏳ Pending | Report UI, charts, technical view |
 | **M4 — Repairs** | ⏳ Pending | Three strategies, comparison, downloads |
 | **M5 — Report, Share, History, Account** | ⏳ Pending | Print, share links, history, account management |

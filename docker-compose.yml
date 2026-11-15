@@ -25,10 +25,12 @@ services:
     environment:
       - DATABASE_URL=postgresql://fairlens:fairlens@db:5432/fairlens
       - DATABASE_URL_UNPOOLED=postgresql://fairlens:fairlens@db:5432/fairlens
-      - ENV=production
-      - HF_TOKEN=${HF_TOKEN}
+      - ENV=development
       - BREVO_API_KEY=${BREVO_API_KEY}
       - BREVO_SENDER=${BREVO_SENDER}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - APP_ORIGIN=http://localhost:3000
     ports:
       - "7860:7860"
     depends_on:

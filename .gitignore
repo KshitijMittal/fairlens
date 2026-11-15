@@ -13,3 +13,5 @@ dist/
 *.log
 samples/_gate/
 .neon
+
+*.egg-info/
