@@ -14,7 +14,7 @@ def _text_columns(frame):
 
 
 def test_loans_no_row_data(loans_result):
-    frame = parsing.read_csv(_fixture("loan_approvals.csv").read_bytes())
+    frame, _ = parsing.read_csv(_fixture("loan_approvals.csv").read_bytes())
     payload = json.dumps(loans_result)
 
     group_col = loans_result["confirmation"]["groups"]["column"]
@@ -45,7 +45,7 @@ def test_loans_no_row_data(loans_result):
 
 
 def test_scholarship_no_row_data(scholarship_result):
-    frame = parsing.read_csv(_fixture("scholarship.csv").read_bytes())
+    frame, _ = parsing.read_csv(_fixture("scholarship.csv").read_bytes())
     payload = json.dumps(scholarship_result)
 
     group_col = scholarship_result["confirmation"]["groups"]["column"]
