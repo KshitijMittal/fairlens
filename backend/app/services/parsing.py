@@ -176,12 +176,13 @@ def build_confirmation_card(frame: pd.DataFrame, detection: dict) -> dict:
     group_col = detection["group"]
 
     # Outcome column info
-    outcome_values = frame[outcome_col].astype(str).str.lower().value_counts()
+    outcome_values = frame[outcome_col].astype(str).str.strip().str.lower().value_counts()
     positive_count = int(outcome_values.get(positive_val, 0))
     total_rows = len(frame)
 
-    # Group column info
-    groups = frame[group_col].astype(str).value_counts()
+    # Group labels are case- and whitespace-insensitive in the engine, so the
+    # card must merge them too or it counts groups the analysis never sees.
+    groups = frame[group_col].astype(str).str.strip().str.lower().value_counts()
     group_values = [
         {"label": str(label), "n": int(count)}
         for label, count in groups.items()

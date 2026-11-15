@@ -210,6 +210,20 @@ class TestConfirmationCard:
         assert card["outcome"]["positive_count"] == 2
         assert card["outcome"]["total_rows"] == 3
 
+    def test_group_labels_merge_across_casing(self):
+        """Casing and padding in a group column collapse to one label, as the engine does."""
+        df = pd.DataFrame({
+            "decision": ["approved", "denied", "approved", "denied"],
+            "gender": ["male", "Male", "MALE ", "female"],
+        })
+        detection = {"outcome": "decision", "positive": "approved", "group": "gender"}
+        card = build_confirmation_card(df, detection)
+
+        labels = [g["label"] for g in card["groups"]["values"]]
+        counts = {g["label"]: g["n"] for g in card["groups"]["values"]}
+        assert labels == ["male", "female"]
+        assert counts["male"] == 3
+
     def test_prefills_correctly_for_bundled_samples(self):
         """Each bundled sample prefills exactly (F2-AC1)."""
         expected = {

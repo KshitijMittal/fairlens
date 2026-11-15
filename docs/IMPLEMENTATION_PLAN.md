@@ -108,7 +108,7 @@ fairlens/
 ├─ samples/                      the three bundled CSVs, also the test fixtures
 ├─ backend/scripts/              deploy_space.py (Space push), make_big_csv.py (G3 fixture)
 ├─ scripts/                      make_samples.py (regenerates the bundled samples)
-├─ .github/workflows/            ci.yml, keep-alive.yml
+├─ .github/workflows/            ci.yml, keep-alive.yml (M7/M8)
 ├─ docker-compose.yml            postgres:16 + api + web
 └─ docs/                         these six documents
 ```
