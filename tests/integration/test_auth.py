@@ -137,6 +137,12 @@ def anonymous_client():
     return TestClient(app)
 
 
+def test_providers_reports_google_flag(anonymous_client):
+    res = anonymous_client.get("/v1/auth/providers")
+    assert res.status_code == 200
+    assert res.json() == {"google": False}
+
+
 def test_unauthenticated_upload_is_401(anonymous_client):
     data = (SAMPLES / "scholarship.csv").read_bytes()
     res = anonymous_client.post(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -10,6 +10,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [google, setGoogle] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/v1/auth/providers")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body) => setGoogle(Boolean(body?.google)))
+      .catch(() => setGoogle(false));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -95,6 +103,8 @@ export default function LoginPage() {
         </button>
       </form>
 
+      {google && (
+        <>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 16 }}>
         <div style={{ flex: 1, borderTop: "1px solid #E3E0D8" }} />
         <span style={{ color: "#8A8794", fontSize: 14 }}>or</span>
@@ -130,6 +140,8 @@ export default function LoginPage() {
         </svg>
         Continue with Google
       </button>
+        </>
+      )}
 
       <p style={{ marginTop: 24, color: "#55525C", fontSize: 15, textAlign: "center" }}>
         Don't have an account? <Link href="/signup" style={{ color: "#17161A", textDecoration: "underline" }}>Sign up</Link>

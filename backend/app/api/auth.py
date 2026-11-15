@@ -145,6 +145,12 @@ def me(request: Request, user_id: uuid.UUID = Depends(require_user)) -> MeRespon
     return _me(user)
 
 
+@router.get("/providers")
+def providers() -> dict:
+    """Which sign-in methods are configured; the page hides Google when it is off."""
+    return {"google": settings.google_enabled}
+
+
 @router.post("/reset/request", status_code=202)
 def reset_request(request: Request, data: ResetRequest) -> dict:
     """Always the same 202 and body, whether or not the address exists (F8-AC3)."""
