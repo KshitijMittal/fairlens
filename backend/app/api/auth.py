@@ -17,6 +17,7 @@ from app.auth.security import (
     hash_password,
     hash_token,
     new_auth_token,
+    password_problem,
     verify_password,
 )
 from app.auth.sessions import (
@@ -35,7 +36,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 me_router = APIRouter(tags=["auth"])
 
-SIGNUP_MIN_PASSWORD = 12
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -52,7 +52,7 @@ SENSITIVE_GOOGLE_SCOPES = {
 
 class SignupRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=SIGNUP_MIN_PASSWORD, max_length=128)
+    password: str = Field(max_length=128)
     display_name: str | None = Field(default=None, max_length=100)
 
 
@@ -73,7 +73,7 @@ class ResetRequest(BaseModel):
 
 class ResetConfirmRequest(BaseModel):
     token: str
-    password: str = Field(min_length=SIGNUP_MIN_PASSWORD, max_length=128)
+    password: str = Field(max_length=128)
 
 
 def _hit_rate_limit(repo: Repository, bucket: str, identifier: str, limit: int) -> None:
@@ -99,6 +99,10 @@ def _login(request: Request, response: Response, repo: Repository, user: dict) -
 def signup(request: Request, response: Response, data: SignupRequest) -> MeResponse:
     repo: Repository = request.app.state.repo
     _hit_rate_limit(repo, "signup", data.email, 5)
+
+    problem = password_problem(data.password)
+    if problem:
+        raise HTTPException(status_code=422, detail=problem)
 
     try:
         user = repo.create_user(data.email.lower(), hash_password(data.password), None,
@@ -174,6 +178,9 @@ def reset_request(request: Request, data: ResetRequest) -> dict:
 @router.post("/reset/confirm")
 def reset_confirm(request: Request, data: ResetConfirmRequest) -> dict:
     repo: Repository = request.app.state.repo
+    problem = password_problem(data.password)
+    if problem:
+        raise HTTPException(status_code=422, detail=problem)
     token_row = repo.consume_auth_token(hash_token(data.token))
     if not token_row:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token.")

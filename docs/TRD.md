@@ -180,7 +180,7 @@ Authorisation-code flow with PKCE, implemented by hand against Google's endpoint
 |---|---|
 | Hash | **argon2id** via `argon2-cffi`; parameters `time_cost=3, memory_cost=65536, parallelism=1` **[default]** |
 | Fallback | bcrypt (cost 12) if argon2 wheels fail to install on the host — decided at import time, recorded in the log |
-| Minimum length | 12 characters, no composition rules, maximum 128 |
+| Minimum length | 8 characters, plus at least one capital letter, one number and one special character; maximum 128 |
 | Not enforced | A common-password blocklist. Length plus argon2 plus the login rate limit in §10 is the better trade; adding a wordlist is a later upgrade |
 | Comparison | Always performed, even for unknown accounts, against a dummy hash, so response timing does not leak account existence |
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import PasswordField, { passwordProblems } from "@/components/PasswordField";
 
 const fieldStyle = {
   width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #D6D3CC",
@@ -13,6 +14,7 @@ export default function ResetPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [done, setDone] = useState<"request" | "confirm" | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,13 +72,17 @@ export default function ResetPage() {
       </h1>
       <p style={{ color: "#55525C", marginBottom: 32 }}>
         {confirming
-          ? "Enter a new password of at least 12 characters."
+          ? "Choose a new password. The rules are shown under the field."
           : "Enter your email address and we'll send you a link to reset your password."}
       </p>
 
       <form
         onSubmit={async (e) => {
           e.preventDefault();
+          if (confirming) {
+            setSubmitted(true);
+            if (passwordProblems(password).length > 0) return;
+          }
           const ok = confirming
             ? await post("/api/v1/auth/reset/confirm", { token, password })
             : await post("/api/v1/auth/reset/request", { email });
@@ -84,20 +90,30 @@ export default function ResetPage() {
         }}
         style={{ display: "flex", flexDirection: "column", gap: 16 }}
       >
-        <div>
-          <label style={{ display: "block", fontSize: 14, marginBottom: 6, color: "#17161A" }}>
-            {confirming ? "New password" : "Email"}
-          </label>
-          <input
-            type={confirming ? "password" : "email"}
-            value={confirming ? password : email}
-            onChange={(e) => (confirming ? setPassword(e.target.value) : setEmail(e.target.value))}
-            required
-            minLength={confirming ? 12 : undefined}
-            autoComplete={confirming ? "new-password" : "email"}
-            style={fieldStyle}
+        {confirming ? (
+          <PasswordField
+            id="reset-password"
+            label="New password"
+            value={password}
+            onChange={setPassword}
+            submitted={submitted}
           />
-        </div>
+        ) : (
+          <div>
+            <label htmlFor="reset-email" style={{ display: "block", fontSize: 14, marginBottom: 6, color: "#17161A" }}>
+              Email
+            </label>
+            <input
+              id="reset-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              style={fieldStyle}
+            />
+          </div>
+        )}
 
         {error && <p style={{ color: "#8C2F2A", fontSize: 14 }}>{error}</p>}
 

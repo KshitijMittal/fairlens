@@ -26,7 +26,7 @@ def repo():
     return Repository(get_pool())
 
 
-def _signup(client: TestClient, password: str = "correct-horse-1") -> dict:
+def _signup(client: TestClient, password: str = "Correct-horse-1") -> dict:
     email = f"{uuid.uuid4().hex}@example.com"
     res = client.post("/v1/auth/signup",
                       json={"email": email, "password": password, "display_name": "Test"})
@@ -45,7 +45,7 @@ def test_signup_creates_session_and_me_works(client):
 def test_duplicate_signup_is_409(client):
     me = _signup(client)
     res = client.post("/v1/auth/signup",
-                      json={"email": me["email"], "password": "correct-horse-1"})
+                      json={"email": me["email"], "password": "Correct-horse-1"})
     assert res.status_code == 409
 
 
@@ -84,19 +84,19 @@ def test_reset_token_is_single_use_and_ends_sessions(client, repo):
                            datetime.now(timezone.utc) + timedelta(minutes=30))
 
     res = client.post("/v1/auth/reset/confirm",
-                      json={"token": token, "password": "a-new-password-1"})
+                      json={"token": token, "password": "A-new-password-1"})
     assert res.status_code == 200
 
     assert client.get("/v1/me").status_code == 401
 
     again = client.post("/v1/auth/reset/confirm",
-                        json={"token": token, "password": "another-password-1"})
+                        json={"token": token, "password": "Another-password-1"})
     assert again.status_code == 400
 
     assert client.post("/v1/auth/login",
                        json={"email": me["email"], "password": me["password"]}).status_code == 401
     assert client.post("/v1/auth/login",
-                       json={"email": me["email"], "password": "a-new-password-1"}).status_code == 200
+                       json={"email": me["email"], "password": "A-new-password-1"}).status_code == 200
 
 
 def test_expired_reset_token_is_refused(client, repo):
@@ -114,7 +114,7 @@ def test_expired_reset_token_is_refused(client, repo):
                      (token_hash,))
 
     res = client.post("/v1/auth/reset/confirm",
-                      json={"token": token, "password": "a-new-password-1"})
+                      json={"token": token, "password": "A-new-password-1"})
     assert res.status_code == 400
 
 
@@ -126,7 +126,7 @@ def test_reset_token_issued_before_a_password_change_is_dead(client, repo):
     repo.set_password(uuid.UUID(me["id"]), "irrelevant-hash")
 
     res = client.post("/v1/auth/reset/confirm",
-                      json={"token": token, "password": "a-new-password-1"})
+                      json={"token": token, "password": "A-new-password-1"})
     assert res.status_code == 400
 
 

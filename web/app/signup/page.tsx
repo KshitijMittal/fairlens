@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PasswordField, { passwordProblems } from "@/components/PasswordField";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -10,11 +11,14 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSubmitted(true);
+    if (passwordProblems(password).length > 0) return;
     setBusy(true);
     try {
       const res = await fetch("/api/v1/auth/signup", {
@@ -41,7 +45,7 @@ export default function SignupPage() {
     <main style={{ maxWidth: 440, margin: "64px auto", padding: "0 24px", fontFamily: "system-ui" }}>
       <h1 style={{ fontSize: 30, marginBottom: 8 }}>Create an account</h1>
       <p style={{ color: "#55525C", marginBottom: 32 }}>
-        Use email and password. Minimum 12 characters.
+        Use email and password.
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -78,24 +82,7 @@ export default function SignupPage() {
           />
         </div>
 
-        <div>
-          <label style={{ display: "block", fontSize: 14, marginBottom: 6, color: "#17161A" }}>
-            Password (min 12 characters)
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={12}
-            maxLength={128}
-            autoComplete="new-password"
-            style={{
-              width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #D6D3CC",
-              fontSize: 16, boxSizing: "border-box",
-            }}
-          />
-        </div>
+        <PasswordField id="signup-password" value={password} onChange={setPassword} submitted={submitted} />
 
         {error && <p style={{ color: "#8C2F2A", fontSize: 14 }}>{error}</p>}
 

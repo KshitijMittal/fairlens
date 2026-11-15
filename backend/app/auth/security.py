@@ -15,6 +15,23 @@ ARGON2_TIME_COST: Final = 3
 ARGON2_MEMORY_COST: Final = 65536
 ARGON2_PARALLELISM: Final = 1
 
+PASSWORD_MIN_LENGTH: Final = 8
+
+_PASSWORD_RULES: Final = (
+    (lambda p: len(p) >= PASSWORD_MIN_LENGTH, "Password must be at least 8 characters."),
+    (lambda p: any(c.isupper() for c in p), "Password must include at least one capital letter."),
+    (lambda p: any(c.isdigit() for c in p), "Password must include at least one number."),
+    (lambda p: any(not c.isalnum() for c in p), "Password must include at least one special character."),
+)
+
+
+def password_problem(password: str) -> str | None:
+    """The first unmet password rule, or None when the password passes (F8)."""
+    for passes, message in _PASSWORD_RULES:
+        if not passes(password):
+            return message
+    return None
+
 _PWD_CONTEXT = None
 _HASHER_NAME = "argon2id"
 
