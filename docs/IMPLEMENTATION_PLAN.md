@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Version** | 1.6 (13 Nov: M1 deployed and verified live on the Space and Neon) |
-| **Status** | M1 complete and deployed. M2 complete locally; deployment pending |
+| **Status** | M1 and M2 complete and deployed |
 | **Date** | 13 November 2026 |
 | **Baseline** | `docs/PRD.md` v2.3, `docs/TRD.md` v2.4, `docs/APP_FLOW.md` v2.3, `docs/UI_UX.md` v2.2, `docs/BACKEND_SCHEMA.md` v2.2 |
 | **Relationship to the TRD** | TRD §13.2 names the milestones. This document makes each one executable: files, commands, tests, and what to drop |
@@ -61,7 +61,7 @@ A gate is passed by a recorded measurement, not an opinion. Each row names the c
 
 | # | Question | Command | Pass | If it fails |
 |---|---|---|---|---|
-| **G1** | Does the Vercel rewrite pass an NDJSON stream through unbuffered? | `curl.exe -N https://<app>/v1/dev/stream-probe` | Three frames arrive spread over at least two seconds | Ship with `NEXT_PUBLIC_ANALYSIS_STREAMING=0`: one JSON body and a spinner. The verdict is unchanged |
+| **G1** | Does the Vercel rewrite pass an NDJSON stream through unbuffered? | `curl.exe -N -b "fl_session=<cookie>" -F "file=@samples/loan_approvals.csv" -F "confirmations={\"outcome\":\"decision\",\"positive\":\"approved\",\"group\":\"gender\"}" https://<app>/api/v1/analyses` | Stage frames arrive spaced apart, not all at the end | None needed: measured unbuffered on the M2 app (evidence below). If a future Next/Vercel change buffers it, the Space can return one JSON body with `STREAMING_ENABLED=0`, but the client branch for that is not built |
 | **G2** | Can the Space send reset mail? Spaces allow only ports 80, 443 and 8080, so there is no SMTP | Send one message through the M0 probe app's `/v1/dev/mail-probe` | The message arrives | Brevo is the design, not a fallback. If the sender is rejected, verify it in Brevo; the app still starts and logs the failure |
 | **G3** | Does a 60 MB body survive the rewrite? | `curl.exe -F "file=@samples/_gate/big.csv" https://<app>/v1/dev/echo-size` | The endpoint reports 62,914,560 bytes | Uploads go direct to the Space with a one-time ticket. This is the expensive fallback and the reason the gate is on day zero |
 | **G4** | Do SHAP and fairlearn install and import on the Space's Python? | Push the probe, then `curl.exe https://<space>/v1/health` | Both versions are reported; neither says `unavailable` | Pin Python 3.11 in the Space's README. If SHAP still fails, influence is marked unavailable (F3-AC5) and the verdict is unaffected |
@@ -78,6 +78,7 @@ The commands above name the M0 probe. Its `/v1/dev/*` endpoints were replaced in
 | G3 | 2026-11-01 | Vercel rewrite → Space (`/api/v1/dev/echo-size`) | reports 62,914,560 bytes; HTTP 200 in 13.6 s | none |
 | G4 | 2026-11-01 | `kshitijmittal07-fairlens-probe.hf.space` (ZeroGPU, Python 3.12.12) | `/v1/health` reports shap 0.54.1, fairlearn 0.15.0; neither `unavailable` | none |
 | G9 | 2026-11-01 | `kshitijmittal07-fairlens-probe.hf.space` (ZeroGPU) | `/v1/dev/bench`: cold 5.4 s, warm 5.56 s (budget 55 s / 20 s) | none |
+| G1 | 2026-11-15 | `fairlens-app.vercel.app` rewrite → Space (`/api/v1/analyses`, the real M2 endpoint) | 20,000-row upload streamed six stage frames plus the result: first at 2.1 s, last at 5.0 s, spread 3.0 s, `application/x-ndjson` preserved | none |
 
 **Time box: half a day.** The probe deploy is the thinnest possible application: `/v1/health`, `/v1/dev/stream-probe`, `/v1/dev/echo-size`, `/v1/dev/bench`, `/v1/dev/mail-probe`, and a page that renders one line. It is thrown away at M0 and rebuilt properly, which is cheaper than discovering G3 after the upload component exists.
 
@@ -215,7 +216,7 @@ psql "$DATABASE_URL" -c "select count(*) from analyses"
 | Upload | 50 MB / 100,000 rows / 60 columns guards in the order of TRD §11.2; delimiter and encoding detection (F1-AC1) |
 | Confirmation | Deterministic column detection, the one card, the `Change` disclosure, the five refusal cases (F2) |
 | Choices | Sampling above 50,000 rows; XLSX sheet choice with the first sheet preselected |
-| Streaming | The six-stage NDJSON log, `ping`, buffered fallback behind the env flag |
+| Streaming | The six-stage NDJSON log and `ping`. The Space can return one JSON body instead (`STREAMING_ENABLED=0`), but the client has no branch for it |
 
 **Exit check**
 
@@ -242,7 +243,7 @@ curl.exe -s -b cookies.txt -F "file=@samples/loan_approvals.csv" \
 
 **If it runs long:** Google sign-in goes (it is second on the cut line). Email and password stay.
 
-**Status: COMPLETE locally; deployment pending.** Auth, upload, confirmation, sampling, XLSX sheet choice, streaming, password reset and the three Playwright flows pass locally: 70 unit tests, 23 integration tests (real HTTP against Postgres 16), and 3 Playwright specs. The suite was run on Python 3.12 dependencies with `shap` 0.54.1. Not verified: the Vercel rewrite passing the stream unbuffered (G1), because the frontend is not deployed; the buffered fallback behind `NEXT_PUBLIC_ANALYSIS_STREAMING=0` covers the risk.
+**Status: COMPLETE and deployed.** Auth, upload, confirmation, sampling, XLSX sheet choice, streaming, password reset and the three Playwright flows pass locally: 70 unit tests, 23 integration tests (real HTTP against Postgres 16), and 3 Playwright specs, on Python 3.12 dependencies with `shap` 0.54.1. Verified on the deployed stack (`fairlens-app.vercel.app`, Space `kshitijmittal07-fairlens-probe.hf.space`): anonymous run 401, signup 201, inspect 200, a 20,000-row upload streamed six stage frames plus the result through the Vercel rewrite (frames spread over 3.0 s, so G1 holds), the stored run re-reads for its owner and 404s for anyone else. Not verified: reset mail delivery (no inbox) and Google sign-in (no client credentials, so the button is hidden).
 
 ---
 

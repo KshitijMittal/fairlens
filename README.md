@@ -103,7 +103,7 @@ Copy `.env.example` to `.env` and fill in values. The app starts in template-fal
 | **Day Zero** | ✅ Complete | Repo reset, five gates passed (G1–G4, G9) on free stack |
 | **M0 — Walking Skeleton** | ✅ Complete | One sample analysed through deployed stack, tests passing |
 | **M1 — Database** | ✅ Complete | 14 migrations, runner with advisory lock and checksum guard, repository, stored-payload read path, Docker + compose, 12 integration tests green. Deployed: live `/v1/health` reports `"database": true`, samples return pass/fail/warn, Neon holds 14 migrations |
-| **M2 — Accounts, Upload, Confirmation** | ✅ Complete locally | Signup/login/logout, sessions, `/v1/me`, Google OAuth, password reset, upload guards, confirmation card with refusal, sampling and XLSX sheet choice, streamed six-stage log with `ping`, buffered fallback. 70 unit + 23 integration tests and 3 Playwright specs pass locally; Space deployment pending |
+| **M2 — Accounts, Upload, Confirmation** | ✅ Complete | Signup/login/logout, sessions, `/v1/me`, Google OAuth, password reset, upload guards, confirmation card with refusal, sampling and XLSX sheet choice, streamed six-stage log with `ping`. 70 unit + 23 integration tests and 3 Playwright specs pass locally; deployed and verified through the Vercel rewrite on `fairlens-app.vercel.app` (streamed run, G1) |
 | **M3 — Verdict Interface** | ⏳ Pending | Report UI, charts, technical view |
 | **M4 — Repairs** | ⏳ Pending | Three strategies, comparison, downloads |
 | **M5 — Report, Share, History, Account** | ⏳ Pending | Print, share links, history, account management |

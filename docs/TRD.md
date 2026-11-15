@@ -322,7 +322,7 @@ Client obligation: if the stream ends without a terminal frame, treat it as `int
 Vercel's rewrite proxies the request to the Space. Whether it forwards a chunked response without buffering it until completion determines whether the progress list is real or theatre.
 
 - **Day-one gate (Gate G1 in §15):** deploy a throwaway endpoint that emits three frames 500 ms apart and `curl -N` it through the rewritten path. Watch whether frames arrive spaced or all at once.
-- **If buffered:** set `NEXT_PUBLIC_ANALYSIS_STREAMING=0`. The client then sends `Accept: application/json`, the server runs the same pipeline and returns one body, and the UI shows an indeterminate spinner instead of stage names. **The verdict is unaffected** — only the progress display is lost.
+- **If buffered:** the Space has a server-side switch, `STREAMING_ENABLED=0`, that returns one JSON body instead of NDJSON. The client branch for that body is not built, so the fallback today is a code change, not a flag. **The verdict is unaffected** - only the progress display is lost.
 - **Rejected fallback:** calling the Space directly from the browser. It would need `SameSite=None` cookies, which Safari and Firefox block by default; hiring a whole auth complication to keep a progress bar is a bad trade.
 
 One flag, one code path, decided by a human on day one rather than discovered by a user.
@@ -707,7 +707,7 @@ Five of these are cheap now and expensive later. Each has a check and a written 
 
 | # | Risk | Gate | Fallback |
 |---|---|---|---|
-| **G1** | Vercel's rewrite buffers the streamed response, so progress frames arrive all at once at the end | **Day 1** — `curl -N` the three-frame probe through the deployed rewrite | `NEXT_PUBLIC_ANALYSIS_STREAMING=0`; single JSON body plus a spinner. Verdict unaffected |
+| **G1** | Vercel's rewrite buffers the streamed response, so progress frames arrive all at once at the end | **Day 1** — `curl -N` the three-frame probe through the deployed rewrite | Measured unbuffered on 2026-11-15. If it regresses, `STREAMING_ENABLED=0` returns one body; the client branch for it is not built |
 | **G2** | Spaces reach only ports 80, 443 and 8080, so password reset cannot send over SMTP | **Day 1** — one real send through Brevo's HTTPS API from the running Space | None needed: Brevo is the design. If the sender address is rejected, verify it in Brevo; the app still starts and logs the failure (F8-AC6) |
 | **G3** | **The most likely thing to break the PRD's 50 MB cap.** Vercel documents a 4.5 MB request-body limit for *Functions*. A rewrite to an external host is routed by the edge proxy rather than by a function, so it should not inherit that limit - but this must be measured, not assumed | **Day 1** — post a 60 MB file through the rewrite and check bytes received at the Space | If the proxy refuses bodies over 4.5 MB: uploads go **direct to the Space** with a one-time ticket (`POST /v1/uploads/ticket` returns a nonce bound to the session, the browser then posts the file to the Space with the nonce in a header instead of a cookie - which sidesteps third-party cookie blocking). Non-streaming routes stay proxied. Real work, not a config change, which is why the gate is day one and not M4 |
 | **G4** | SHAP or fairlearn fails to install or import on the Space's Python | **Day 1** — the Space build, then `/v1/health` reports both versions | Pin Python 3.11 in the Space; if SHAP still fails, influence degrades (F3-AC5) and the verdict is unaffected |
