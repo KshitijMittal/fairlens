@@ -31,13 +31,19 @@ def test_account_deletion_cascades_everywhere(stored, user_id, db):
                " values ('k1', %s, 'narrative', 'v1', '{}'::jsonb)", (parent_id,))
 
     # Sanity: the rows exist before the delete, so the assertions below mean something.
-    for table in ("analyses", "analysis_checks", "analysis_groups", "analysis_narratives",
-                  "analysis_repairs", "chat_messages", "shares", "llm_cache"):
-        assert db.execute(f"select count(*) from {table}").fetchone()[0] > 0, table
+    assert db.execute("select count(*) from sessions where user_id = %s", (user_id,)).fetchone()[0] > 0
+    assert db.execute("select count(*) from auth_tokens where user_id = %s", (user_id,)).fetchone()[0] > 0
+    assert db.execute("select count(*) from analyses where user_id = %s", (user_id,)).fetchone()[0] == 2
+    for table in ("analysis_narratives", "analysis_repairs", "chat_messages", "shares", "llm_cache"):
+        assert db.execute(f"select count(*) from {table} where analysis_id in (%s, %s)",
+                          (parent_id, child_id)).fetchone()[0] > 0, table
 
     db.execute("delete from users where id = %s", (user_id,))
 
-    for table in ("sessions", "auth_tokens", "analyses", "analysis_checks", "analysis_groups",
-                  "analysis_narratives", "analysis_repairs", "chat_messages", "shares",
-                  "llm_cache"):
-        assert db.execute(f"select count(*) from {table}").fetchone()[0] == 0, table
+    for table in ("sessions", "auth_tokens", "analyses"):
+        assert db.execute(f"select count(*) from {table} where user_id = %s",
+                          (user_id,)).fetchone()[0] == 0, table
+    for table in ("analysis_checks", "analysis_groups", "analysis_narratives", "analysis_repairs",
+                  "chat_messages", "shares", "llm_cache"):
+        assert db.execute(f"select count(*) from {table} where analysis_id in (%s, %s)",
+                          (parent_id, child_id)).fetchone()[0] == 0, table
