@@ -20,6 +20,7 @@ C5_MAX_RATE_HALF_WIDTH = THRESHOLDS["sample_adequacy"]["max_rate_half_width"]
 
 FOLDS = 5
 POSITIVE_RATE_THRESHOLD = 0.5
+SAMPLING_THRESHOLD = 50_000
 
 
 def derive_seed(file_bytes: bytes, confirmations: dict) -> int:

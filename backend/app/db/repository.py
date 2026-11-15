@@ -57,6 +57,22 @@ class Repository:
             )
             return cur.fetchone()
 
+    def get_user_by_id(self, user_id: uuid.UUID) -> dict | None:
+        with self._pool.connection() as conn:
+            cur = conn.execute(
+                q.get_query("users_by_id"),
+                {"user_id": str(user_id)},
+            )
+            return cur.fetchone()
+
+    def link_google_sub(self, user_id: uuid.UUID, google_sub: str) -> dict:
+        with self._pool.connection() as conn:
+            cur = conn.execute(
+                q.get_query("users_link_google_sub"),
+                {"user_id": str(user_id), "google_sub": google_sub},
+            )
+            return cur.fetchone()
+
     def set_password(self, user_id: uuid.UUID, password_hash: str) -> dict:
         with self._pool.connection() as conn:
             cur = conn.execute(
@@ -221,6 +237,14 @@ class Repository:
                 {"id": str(analysis_id)},
             ).fetchone()
         return row["result"] if row else None
+
+    def get_analysis_owner(self, analysis_id: uuid.UUID) -> uuid.UUID | None:
+        with self._pool.connection() as conn:
+            row = conn.execute(
+                q.get_query("analyses_owner"),
+                {"id": str(analysis_id)},
+            ).fetchone()
+        return row["user_id"] if row else None
 
     def get_analysis_by_share_token(self, token_hash: str) -> dict | None:
         with self._pool.connection() as conn:
