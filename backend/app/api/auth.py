@@ -170,7 +170,7 @@ def reset_request(request: Request, data: ResetRequest) -> dict:
             try:
                 _send_reset_email(user["email"], token)
             except Exception as exc:
-                logger.warning("Reset email failed: %s", type(exc).__name__)
+                logger.warning("Reset email failed: %s: %s", type(exc).__name__, exc)
 
     return {"message": "If an account with that email exists, a reset link has been sent."}
 
