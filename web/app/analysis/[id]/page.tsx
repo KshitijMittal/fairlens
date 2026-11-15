@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 const STATE_WORDS: Record<string, { word: string; glyph: string; fg: string; tint: string }> = {
@@ -10,7 +11,11 @@ const STATE_WORDS: Record<string, { word: string; glyph: string; fg: string; tin
 export default async function AnalysisPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const origin = process.env.API_ORIGIN ?? "http://localhost:7860";
-  const res = await fetch(`${origin}/v1/analyses/${id}`, { cache: "no-store" });
+  // Forward the session so a stored analysis is readable by its owner (F8).
+  const res = await fetch(`${origin}/v1/analyses/${id}`, {
+    cache: "no-store",
+    headers: { cookie: cookies().toString() },
+  });
   if (!res.ok) {
     notFound();
   }
