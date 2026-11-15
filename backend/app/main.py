@@ -1,16 +1,24 @@
-"""The FastAPI app (M1): health, sample runs, database-backed analyses."""
+"""The FastAPI app (M2): health, auth, analyses, streaming."""
+import logging
+import sys
 import time
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.api import auth, analyses
+from app.api.auth import GOOGLE_SCOPES, SENSITIVE_GOOGLE_SCOPES
+from app.auth.sessions import optional_user, sweep_expired
 from app.core import result_cache
+from app.core.config import settings
 from app.core.settings import ENGINE_VERSION
 from app.db import Repository, close_pool, get_pool, init_db
 from app.services import engine
+
+logger = logging.getLogger(__name__)
 
 
 def _samples_dir() -> Path:
@@ -30,15 +38,33 @@ SAMPLE_FILES = {
 }
 
 
+def _startup_guards() -> None:
+    """Refuse to boot in production with a dangerous or incomplete configuration."""
+    if settings.ENV != "production":
+        return
+    if set(GOOGLE_SCOPES) & SENSITIVE_GOOGLE_SCOPES:
+        sys.exit("Startup failed: Google sign-in requests a sensitive scope (F8-AC1)")
+    if not settings.BREVO_API_KEY or not settings.BREVO_SENDER:
+        sys.exit("Startup failed: BREVO_API_KEY and BREVO_SENDER are required in production (F8-AC6)")
+    logger.info("Production startup guards passed")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _startup_guards()
     init_db()
     app.state.repo = Repository(get_pool())
+    sweep_expired()
     yield
     close_pool()
 
 
 app = FastAPI(title="FairLens", version=ENGINE_VERSION, lifespan=lifespan)
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(auth.me_router)
+app.include_router(analyses.router)
 
 
 def problem(request: Request, status: int, code: str, title: str, detail: str) -> JSONResponse:
@@ -54,7 +80,8 @@ def _versions() -> dict:
     for name in ("shap", "fairlearn", "pandas", "numpy", "scikit-learn"):
         module = {"scikit-learn": "sklearn"}.get(name, name)
         try:
-            versions[name] = __import__(module).__version__
+            mod = __import__(module)
+            versions[name] = getattr(mod, "__version__", "unavailable")
         except Exception:
             versions[name] = "unavailable"
     return versions
@@ -79,7 +106,8 @@ async def health() -> dict:
 
 
 @app.post("/v1/dev/sample/{slug}")
-async def run_sample(slug: str, request: Request) -> JSONResponse:
+async def run_sample(slug: str, request: Request,
+                     user_id: uuid.UUID | None = Depends(optional_user)) -> JSONResponse:
     filename = SAMPLE_FILES.get(slug)
     if filename is None:
         return problem(request, 404, "not_found", "Unknown sample", f"No bundled sample named '{slug}'.")
@@ -90,28 +118,16 @@ async def run_sample(slug: str, request: Request) -> JSONResponse:
 
     result = engine.run(path.read_bytes(), filename)
     result["id"] = str(uuid.uuid4())
+    result["dataset"]["is_sample"] = True
     result["dataset"]["sample"] = {"slug": slug}
 
-    # Anonymous runs are never written to the database; the payload lives in the
-    # in-process cache for 30 minutes (BACKEND_SCHEMA 3.1).
-    result_cache.put(result["id"], result)
+    if user_id:
+        request.app.state.repo.create_analysis(result, user_id)
+    else:
+        # Anonymous runs are never written to the database; the payload lives in
+        # the in-process cache for 30 minutes (BACKEND_SCHEMA 3.1).
+        result_cache.put(result["id"], result)
     return JSONResponse(content=result)
-
-
-@app.get("/v1/analyses/{analysis_id}")
-async def get_analysis(analysis_id: str, request: Request) -> JSONResponse:
-    try:
-        parsed_id = uuid.UUID(analysis_id)
-    except ValueError:
-        return problem(request, 404, "not_found", "Not found", "No analysis with this id.")
-
-    payload = result_cache.get(str(parsed_id))
-    if payload is None:
-        payload = request.app.state.repo.get_analysis(parsed_id)
-    if payload is None:
-        return problem(request, 404, "not_found", "Not found",
-                       "No analysis with this id. Anonymous sample runs expire after 30 minutes.")
-    return JSONResponse(content=payload)
 
 
 @app.get("/v1/samples")

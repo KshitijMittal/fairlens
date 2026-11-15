@@ -20,11 +20,44 @@ from pandas.api.types import is_numeric_dtype
 from app.core import report_text, verdict as verdict_mod
 from app.core.settings import (BOOTSTRAP_CONFIDENCE, BOOTSTRAP_RESAMPLES, C5_MAX_RATE_HALF_WIDTH,
                                C5_MIN_GROUP_ROWS, ENGINE_VERSION, FOLDS, MIN_GROUP_ROWS,
-                               POSITIVE_RATE_THRESHOLD, RATIO_MAX_HALF_WIDTH, THRESHOLDS,
-                               derive_seed)
+                               POSITIVE_RATE_THRESHOLD, RATIO_MAX_HALF_WIDTH, SAMPLING_THRESHOLD,
+                               THRESHOLDS, derive_seed)
 from app.services import parsing
 
 ALPHA = (1 - BOOTSTRAP_CONFIDENCE) / 2 * 100
+
+
+def _maybe_sample(frame: pd.DataFrame, seed: int, confirmations: dict) -> tuple[pd.DataFrame, dict | None]:
+    """
+    Apply deterministic sampling if frame exceeds threshold and sampling is configured.
+
+    Returns (sampled_frame, sampling_metadata or None).
+    """
+    if len(frame) <= SAMPLING_THRESHOLD:
+        return frame, None
+
+    sampling_config = confirmations.get("sampling")
+    if not sampling_config or not sampling_config.get("enabled"):
+        return frame, None
+
+    sample_size = min(sampling_config.get("size", SAMPLING_THRESHOLD), len(frame))
+    sample_seed = sampling_config.get("seed", seed)
+
+    # Deterministic sampling using the seed
+    rng = np.random.default_rng(sample_seed)
+    indices = rng.choice(len(frame), size=sample_size, replace=False)
+    indices = np.sort(indices)  # Keep original order
+
+    sampled_frame = frame.iloc[indices].reset_index(drop=True)
+
+    sampling_meta = {
+        "enabled": True,
+        "original_rows": len(frame),
+        "sampled_rows": sample_size,
+        "seed": int(sample_seed),
+        "method": "random",
+    }
+    return sampled_frame, sampling_meta
 
 
 def _bootstrap(seed: int, y: np.ndarray, groups: np.ndarray, labels: list[str],
@@ -92,15 +125,44 @@ def _cramers_v(a: pd.Series, b: pd.Series) -> float:
     return float(np.sqrt(max(chi2 / n, 0.0) / denom)) if denom > 0 else 0.0
 
 
-def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dict:
+def run(raw: bytes, dataset_name: str, confirmations: dict | None = None,
+        frame: pd.DataFrame | None = None, clean_stats: dict | None = None,
+        progress=None) -> dict:
+    """Analyse a dataset. `frame`, when given, is already parsed and cleaned by
+    the caller; `progress(index)` is called at each of the five engine stages."""
     started = time.perf_counter()
     confirmations = confirmations or {}
 
-    frame, clean_stats = parsing.clean(parsing.read_csv(raw))
-    detected = parsing.detect(frame)
-    outcome_col = confirmations.get("outcome", detected["outcome"])
-    positive_raw = confirmations.get("positive", detected["positive"])
-    group_col = confirmations.get("group", detected["group"])
+    def step(index: int) -> None:
+        if progress:
+            progress(index)
+
+    step(1)
+    if frame is None:
+        frame, _ = parsing.read_csv(raw)
+        clean_stats = None
+    if clean_stats is None:
+        frame, clean_stats = parsing.clean(frame)
+    step(2)
+
+    age_col = next(
+        (c for c in ("age", "age_years") if c in frame.columns and is_numeric_dtype(frame[c])),
+        None,
+    )
+    age_applied = bool(age_col and confirmations.get("age_banding"))
+    if age_applied:
+        start = int(frame[age_col].min()) // 10 * 10
+        edges = list(range(start, int(frame[age_col].max()) + 11, 10))
+        labels = [f"{a}-{b - 1}" for a, b in zip(edges[:-1], edges[1:])]
+        frame[age_col] = pd.cut(frame[age_col], bins=edges, right=False,
+                                labels=labels).astype(str)
+
+    detected = (parsing.detect(frame)
+                if not all(k in confirmations for k in ("outcome", "positive", "group"))
+                else {})
+    outcome_col = confirmations.get("outcome") or detected["outcome"]
+    positive_raw = confirmations.get("positive") or detected["positive"]
+    group_col = confirmations.get("group") or detected["group"]
 
     frame[outcome_col] = frame[outcome_col].astype(str).str.strip().str.lower()
     positive = positive_raw.strip().lower()
@@ -108,11 +170,27 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
     groups = frame[group_col].astype(str).str.strip().str.lower().to_numpy()
     labels = sorted(set(groups))
 
+    seed = derive_seed(raw, {"outcome": outcome_col, "positive": positive, "group": group_col})
+
+    # Apply sampling if configured
+    frame, sampling_meta = _maybe_sample(frame, seed, confirmations)
+    if sampling_meta:
+        # Re-derive arrays after sampling
+        y = (frame[outcome_col] == positive).astype(int).to_numpy()
+        groups = frame[group_col].astype(str).str.strip().str.lower().to_numpy()
+        labels = sorted(set(groups))
+
     group_counts = {label: int((groups == label).sum()) for label in labels}
     positive_counts = {label: int(((groups == label) & (y == 1)).sum()) for label in labels}
-
-    seed = derive_seed(raw, {"outcome": outcome_col, "positive": positive, "group": group_col})
     positive_count = int(y.sum())
+
+    age_bands = None
+    if age_applied:
+        age_bands = []
+        for band in sorted(frame[age_col].unique(), key=lambda b: int(str(b).split("-")[0])):
+            mask = frame[age_col] == band
+            age_bands.append({"band": str(band), "n": int(mask.sum()),
+                              "positives": int((mask & (y == 1)).sum())})
 
     features = [c for c in frame.columns if c != outcome_col]
     categorical = [c for c in features if not is_numeric_dtype(frame[c])]
@@ -121,6 +199,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
     for c in categorical:
         x[c] = x[c].astype(object)
 
+    step(3)
     skf = StratifiedKFold(n_splits=FOLDS, shuffle=True, random_state=seed)
     oof = np.zeros(len(y), dtype=float)
     for train_idx, test_idx in skf.split(x, y):
@@ -140,6 +219,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
     oof_recall = float(predicted_positive[y == 1].mean()) if (y == 1).any() else None
     oof_precision = float((y[predicted_positive] == 1).mean()) if predicted_positive.any() else None
 
+    step(4)
     boot = _bootstrap(seed, y, groups, labels, oof_labels)
 
     def group_table(kind: str, values: np.ndarray) -> list[dict]:
@@ -279,6 +359,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
          "reason": c5_reason},
     ]
 
+    step(5)
     proxies = []
     for c in features:
         if c == group_col:
@@ -311,7 +392,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
             "rows": int(len(frame)),
             "columns": int(frame.shape[1]),
             "column_names": list(frame.columns),
-            "is_sample": True,
+            "is_sample": False,
             "sample": None,
         },
         "confirmation": {
@@ -319,7 +400,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
                         "positive_count": positive_count},
             "groups": {"column": group_col,
                        "values": [{"label": l, "n": group_counts[l]} for l in labels]},
-            "age_banding": {"applied": False, "bands": None},
+            "age_banding": {"applied": age_applied, "bands": age_bands},
             "factor_columns": len(features) - 1,
         },
         "verdict": overall,
@@ -356,7 +437,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None) -> dic
             "grouped_rare": [],
         },
         "proxies": proxies,
-        "sampling": None,
+        "sampling": sampling_meta,
         "thresholds": THRESHOLDS,
         "narrative": {
             "kind": "template",
