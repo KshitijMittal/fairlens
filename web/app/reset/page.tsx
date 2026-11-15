@@ -53,7 +53,7 @@ export default function ResetPage() {
         </h1>
         <p style={{ color: "#55525C", marginBottom: 32, fontSize: 17, lineHeight: 1.6 }}>
           {done === "request"
-            ? "If an account with that email exists, a reset link has been sent. The link expires in 30 minutes."
+            ? "If an account with that email exists, a reset link has been sent. The link expires in 30 minutes. Check your spam folder if it has not arrived within a minute."
             : "Your password has been reset and every other session has been signed out."}
         </p>
         <Link href="/login" style={{ color: "#17161A", textDecoration: "underline" }}>

@@ -282,7 +282,7 @@ Four small screens with more failure states than their size suggests.
 | State | What is shown | Actions |
 |---|---|---|
 | **Idle** | One field | Send reset link |
-| **Submitted** | The same confirmation whether or not the address exists: *if that address has an account, a link is on its way* (F8-AC3) | — |
+| **Submitted** | The same confirmation whether or not the address exists: *if that address has an account, a link is on its way* (F8-AC3), plus a line to check spam — free-tier mail from a shared relay often lands there | — |
 | **Rate limited** | How long to wait | — |
 
 #### `/reset/confirm`
