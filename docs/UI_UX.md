@@ -154,13 +154,15 @@ The Inconclusive state keeps its cool neutral in both themes, which is the point
 
 | Cookie value | What the server renders | What supplies the colours |
 |---|---|---|
-| `light` | `<html data-theme="light">` | The light tokens |
-| `dark` | `<html data-theme="dark">` | The dark tokens |
+| `light` | `<div class="report" data-theme="light">` | The light tokens |
+| `dark` | `<div class="report" data-theme="dark">` | The dark tokens |
 | `system` or absent | No attribute | `@media (prefers-color-scheme: dark)` selects the dark tokens |
 
-**No JavaScript and no flash.** Because the cookie is read while the page is rendered, the correct theme is present in the first byte. When the preference is `system` there is nothing to resolve on the client at all — plain CSS media queries do it. There is no inline pre-paint script, so the CSP in TRD §11.1 needs no exception, and the theme works with JavaScript disabled.
+**No JavaScript and no flash.** Because the cookie is read in the report's nested layout while the page is rendered, the correct theme is present in the first byte. When the preference is `system` there is nothing to resolve on the client at all — plain CSS media queries do it. There is no inline pre-paint script, so the CSP in TRD §11.1 needs no exception, and the theme works with JavaScript disabled.
 
-The one cost is that any route reading the cookie renders dynamically, which every authenticated route already does. The landing page gets the system preference for free and ignores an explicit override for signed-out visitors — the control lives in `/account` (D3), so an explicit override only exists for someone who is signed in anyway.
+The attribute sits on the report wrapper rather than `<html>` for one reason: the screens built before M3 still carry literal colours, so a page-wide dark attribute would half-theme them. The site header and page ground follow the report through `body:has(.report[data-theme="dark"])`, so a dark report does not sit under a light bar. When M5 converts the older screens to tokens, the cookie moves to `<html>` in the root layout and that `:has()` rule goes away.
+
+The one cost is that the report route renders dynamically, which it already did: it reads the session cookie. Every other route keeps its rendering mode, so the landing page stays static and gets the system preference for free — it ignores an explicit override for signed-out visitors. The control lives in `/account` (D3), so an explicit override only exists for someone who is signed in anyway.
 
 ---
 
@@ -552,7 +554,7 @@ The Space shares a CPU and the first visit may follow a cold start, so the inter
 | R-3 | Instrument Serif ships one weight, so hierarchy rests entirely on size | Deliberate. If a second weight is ever wanted, the family change comes with it |
 | R-4 | The glyph field risks looking like a hacker cliché | Kept to 96 × 36 px, ink-weight, no green, no glow. If it reads wrong, it becomes a static glyph and nothing else changes |
 | R-5 | `print-color-adjust: exact` is not universally honoured | A14 asserts the document is legible in greyscale, so the printed verdict survives without colour either way |
-| R-6 | **A second palette is a second thing to keep correct.** The failure is silent: a hardcoded hex looks right in one theme and wrong in the other | Components may only reference tokens, never literal colours, enforced by a lint rule rather than review. A15 asserts both themes in CI |
+| R-6 | **A second palette is a second thing to keep correct.** The failure is silent: a hardcoded hex looks right in one theme and wrong in the other | Components may only reference tokens, never literal colours. `contrast.spec.ts` asserts both themes now; the lint rule that fails a literal hex arrives with M7's CI, until then it is review |
 
 ---
 

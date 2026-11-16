@@ -45,7 +45,7 @@ Upload a CSV (or use one of the three bundled samples), confirm what the columns
 └─────────────────────────────────────────────┘
 ```
 
-- **Frontend:** Next.js 14 (App Router), server components (report UI lands at M3)
+- **Frontend:** Next.js 14 (App Router), server components, self-hosted fonts (the report UI is M3)
 - **Backend:** FastAPI, psycopg3 (pooled), scikit-learn, fairlearn, SHAP, 1000-resample bootstrap
 - **Database:** Neon Postgres 16, 14 migrations, advisory lock at boot, immutable metrics
 - **Auth (M2):** Email/password (argon2id), Google OAuth, Brevo HTTPS for password reset
@@ -104,7 +104,7 @@ Copy `.env.example` to `.env` and fill in values. The app starts in template-fal
 | **M0 — Walking Skeleton** | ✅ Complete | One sample analysed through deployed stack, tests passing |
 | **M1 — Database** | ✅ Complete | 14 migrations, runner with advisory lock and checksum guard, repository, stored-payload read path, Docker + compose, 12 integration tests green. Deployed: live `/v1/health` reports `"database": true`, samples return pass/fail/warn, Neon holds 14 migrations |
 | **M2 — Accounts, Upload, Confirmation** | ✅ Complete | Signup/login/logout, sessions, `/v1/me`, Google OAuth, password reset, upload guards, confirmation card with refusal, sampling and XLSX sheet choice, streamed six-stage log with `ping`. 70 unit + 23 integration tests and 3 Playwright specs pass locally; deployed and verified through the Vercel rewrite on `fairlens-app.vercel.app` (streamed run, G1) |
-| **M3 — Verdict Interface** | ⏳ Pending | Report UI, charts, technical view |
+| **M3 — Verdict Interface** | ✅ Complete (local) | Report tokens and local fonts, the four lead blocks with verbatim copy, five check rows with intervals and methods, SVG selection-rate chart with a data-table alternative, affected groups and amplification, collapsed technical view incl. influence, server-resolved theme with no flash, motion with `prefers-reduced-motion`. 82 unit + 13 Playwright specs green, `tsc` clean, build green; not yet deployed |
 | **M4 — Repairs** | ⏳ Pending | Three strategies, comparison, downloads |
 | **M5 — Report, Share, History, Account** | ⏳ Pending | Print, share links, history, account management |
 | **M6 — Narrative & Chat** | ⏳ Pending | AI narrative with guard, chat with citations |

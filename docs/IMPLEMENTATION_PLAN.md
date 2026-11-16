@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| **Version** | 1.6 (13 Nov: M1 deployed and verified live on the Space and Neon) |
-| **Status** | M1 and M2 complete and deployed |
-| **Date** | 13 November 2026 |
+| **Version** | 1.7 (16 Nov: M3 complete locally) |
+| **Status** | M1 and M2 complete and deployed; M3 complete locally |
+| **Date** | 16 November 2026 |
 | **Baseline** | `docs/PRD.md` v2.3, `docs/TRD.md` v2.4, `docs/APP_FLOW.md` v2.3, `docs/UI_UX.md` v2.2, `docs/BACKEND_SCHEMA.md` v2.2 |
 | **Relationship to the TRD** | TRD §13.2 names the milestones. This document makes each one executable: files, commands, tests, and what to drop |
 
@@ -264,11 +264,10 @@ curl.exe -s -b cookies.txt -F "file=@samples/loan_approvals.csv" \
 **Exit check**
 
 ```
-npx playwright test web/e2e/verdicts.spec.ts
-npx axe web/e2e --tags wcag2a,wcag2aa
+npx playwright test web/e2e/verdicts.spec.ts web/e2e/contrast.spec.ts
 ```
 
-Four fixtures — one per verdict — each render their own lead block and identical skeletons.
+Four fixtures — one per verdict — each render their own lead block and identical skeletons. `contrast.spec.ts` is the M3 accessibility gate: it computes WCAG ratios from the shipped tokens in both themes, which is the part axe would also catch. A full axe run needs `@axe-core/playwright` (axe can't reach a page behind a session cookie), so automated axe lands in M5 together with the share page.
 
 **Tests added**
 
@@ -281,6 +280,8 @@ Four fixtures — one per verdict — each render their own lead block and ident
 - `web/e2e/contrast.spec.ts` — the eight verdict pairs plus ink on paper, both themes (UI_UX A15).
 
 **If it runs long:** motion. The report is complete without it; the reveal is the only thing that may be dropped here, and it is not on the cut line.
+
+**Status: COMPLETE locally, not yet deployed.** `verdicts.spec.ts` builds a real run from each sample plus a 220-row `thin_group.csv` fixture and, for each of the four states, asserts the banner's `data-verdict`, the exact headline, all five check rows, the chart and the method section. Traceability is a test rather than a habit: `traceability.spec.ts` reads the stored payload and requires every summary figure to appear in the technical table at the same three decimals, and, when SHAP is available, the top influence feature and its value. `inconclusive.spec.ts` compares the painted banner tint to `--inconclusive-tint` and requires every Inconclusive row to be open. `theme.spec.ts` finds `data-theme="dark"` in the first byte of HTML, checks the paper colour it produces, and repeats the check with JavaScript disabled. `contrast.spec.ts` computes WCAG ratios in the browser from the shipped tokens: eight verdict pairs (each state on its tint and on paper) plus ink on paper, in both themes, all at or above 4.5:1. Full suite: 13 Playwright specs in 25.5 s, 82 unit tests (including `test_influence.py` and `test_payload_contract.py`), `tsc --noEmit` clean, `npm run build` green on seven routes — all against the local Docker stack through the Next rewrite. Integration tests were not re-run: M3 adds no SQL. Nothing is deployed. Sections are numbered 01–04 for now; M4 inserts repairs as 04 and the method becomes 05. Mobile at 375 px, dark mode and the site header following the report theme were checked by screenshot; the header sits outside `.report`, so `body:has(.report[data-theme="dark"])` repeats the palette for the shell, and UI_UX §4.3 records that choice.
 
 ---
 
@@ -505,7 +506,7 @@ Each feature's criteria are asserted in the file named against it; a criterion w
 | F2 confirmation | M2 | `tests/test_detection.py`, `web/e2e/upload.spec.ts` |
 | F3 run the analysis | M0–M3 | `tests/test_golden_*.py`, `tests/integration/test_roundtrip.py`, `tests/test_influence.py`, `web/e2e/traceability.spec.ts` |
 | F4 summary view | M3 | `web/e2e/verdicts.spec.ts`, `web/e2e/traceability.spec.ts`, `web/e2e/inconclusive.spec.ts` |
-| F5 technical view | M3 | `web/e2e/traceability.spec.ts`, `web/e2e/report.spec.ts`, `tests/test_influence.py` |
+| F5 technical view | M3 | `web/e2e/traceability.spec.ts`, `tests/test_influence.py` |
 | F6 repairs | M4 | `tests/test_repairs.py`, `web/e2e/repairs.spec.ts` |
 | F7 report, share, print | M5 | `web/e2e/share.spec.ts`, `web/e2e/print.spec.ts` |
 | F8 accounts | M2, M8 | `tests/integration/test_auth.py`, `tests/test_log_hygiene.py`, `tests/test_startup.py` |
