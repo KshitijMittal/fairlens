@@ -37,24 +37,26 @@ export default function Header() {
 
   if (loading) {
     return (
-      <header style={{ padding: "16px 24px", borderBottom: "1px solid #E3E0D8" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", justifyContent: "space-between" }}>
-          <span style={{ color: "#8A8794" }}>Loading…</span>
+      <header className="site-header">
+        <div className="site-header__row">
+          <span style={{ color: "var(--ink-faint, #8A8794)" }}>Loading…</span>
         </div>
       </header>
     );
   }
 
   return (
-    <header style={{ padding: "16px 24px", borderBottom: "1px solid #E3E0D8" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link href="/" style={{ fontSize: 20, fontWeight: 600, textDecoration: "none", color: "#17161A" }}>
+    <header className="site-header">
+      <div className="site-header__row">
+        <Link href="/" style={{ fontSize: 20, fontWeight: 600, textDecoration: "none",
+          color: "var(--ink, #17161A)" }}>
           FairLens
         </Link>
-        <nav style={{ display: "flex", gap: 16, alignItems: "center" }}>
+        <nav>
           {user ? (
             <>
-              <span style={{ color: "#55525C", fontSize: 15 }}>
+              <span className="site-header__email" style={{ color: "var(--ink-muted, #55525C)",
+                fontSize: 15 }}>
                 {user.display_name || user.email}
               </span>
               <button
@@ -65,8 +67,10 @@ export default function Header() {
                   router.refresh();
                 }}
                 style={{
-                  padding: "8px 16px", borderRadius: 2, border: "1px solid #8C2F2A",
-                  background: "#FAF9F6", color: "#8C2F2A", cursor: "pointer", fontSize: 15,
+                  padding: "8px 16px", borderRadius: 2,
+                  border: "1px solid var(--fail, #8C2F2A)",
+                  background: "var(--paper, #FAF9F6)", color: "var(--fail, #8C2F2A)",
+                  cursor: "pointer", fontSize: 15, whiteSpace: "nowrap",
                 }}
               >
                 Sign out
@@ -74,14 +78,16 @@ export default function Header() {
             </>
           ) : (
             <>
-              <Link href="/login" style={{ color: "#17161A", textDecoration: "none", fontSize: 15 }}>
+              <Link href="/login" style={{ color: "var(--ink, #17161A)", textDecoration: "none",
+                fontSize: 15 }}>
                 Sign in
               </Link>
               <Link
                 href="/signup"
                 style={{
-                  padding: "8px 16px", borderRadius: 2, border: "1px solid #17161A",
-                  background: "#17161A", color: "#FAF9F6", textDecoration: "none", fontSize: 15,
+                  padding: "8px 16px", borderRadius: 2, border: "1px solid var(--ink, #17161A)",
+                  background: "var(--ink, #17161A)", color: "var(--paper, #FAF9F6)",
+                  textDecoration: "none", fontSize: 15, whiteSpace: "nowrap",
                 }}
               >
                 Sign up
