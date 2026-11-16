@@ -4,6 +4,7 @@ Parse -> clean -> encode -> 5-fold stratified OOF logistic regression ->
 C1-C5 + per-group tables + bootstrap intervals -> verdict + AnalysisResult.
 """
 import hashlib
+import logging
 import time
 from datetime import datetime, timezone
 
@@ -25,6 +26,48 @@ from app.core.settings import (BOOTSTRAP_CONFIDENCE, BOOTSTRAP_RESAMPLES, C5_MAX
 from app.services import parsing
 
 ALPHA = (1 - BOOTSTRAP_CONFIDENCE) / 2 * 100
+
+logger = logging.getLogger(__name__)
+
+
+def _influence(frame: pd.DataFrame, features: list[str], categorical: list[str],
+               numeric: list[str], y: np.ndarray) -> dict:
+    """Mean absolute SHAP per source feature, top 15. Non-fatal (PRD F3-AC5)."""
+    method = "mean absolute SHAP"
+    try:
+        import shap
+
+        x = frame[features].copy()
+        for column in categorical:
+            x[column] = x[column].astype(object)
+        pre = ColumnTransformer(
+            [("cat", OneHotEncoder(handle_unknown="ignore", drop="first"), categorical),
+             ("num", StandardScaler(), numeric)],
+            remainder="drop",
+        )
+        model = Pipeline([("pre", pre), ("clf", LogisticRegression(max_iter=1000))])
+        model.fit(x, y)
+        transformed = model.named_steps["pre"].transform(x)
+        rows = min(500, transformed.shape[0])
+        values = shap.LinearExplainer(
+            model.named_steps["clf"],
+            shap.maskers.Independent(transformed[:min(100, transformed.shape[0])]),
+        ).shap_values(transformed[:rows])
+        means = np.abs(np.asarray(values)).mean(axis=0)
+        totals: dict[str, float] = {}
+        for name, value in zip(model.named_steps["pre"].get_feature_names_out(x.columns), means):
+            rest = name.split("__", 1)[-1]
+            source = max((f for f in features if rest == f or rest.startswith(f + "_")),
+                         key=len, default=None)
+            if source:
+                totals[source] = totals.get(source, 0.0) + float(value)
+        ranked = sorted(totals.items(), key=lambda item: -item[1])[:15]
+        return {"available": True, "reason": None, "method": method, "rows": rows,
+                "features": [{"feature": f, "value": round(v, 4)} for f, v in ranked]}
+    except Exception:
+        logger.exception("Influence unavailable; the report continues without it")
+        return {"available": False, "reason": "unavailable", "method": method, "rows": 0,
+                "features": []}
 
 
 def _maybe_sample(frame: pd.DataFrame, seed: int, confirmations: dict) -> tuple[pd.DataFrame, dict | None]:
@@ -301,7 +344,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None,
     g_high = max(rates_h, key=rates_h.get)
     g_low = min(rates_h, key=rates_h.get)
     gap_pts = round((rates_h[g_high] - rates_h[g_low]) * 100)
-    model_gap_pts = round(abs(rates_m[g_high] - rates_m[g_low]) * 100)
+    model_gap_pts = round(dpd_m * 100)
 
     # Nobody is "affected" on a Pass, and the interval on a gap must be the gap's.
     verb = positive if positive not in ("yes", "no", "true", "false", "1", "0") else outcome_col.replace("_", " ")
@@ -330,23 +373,27 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None,
         {"code": "C1", "name": report_text.CHECK_NAMES["C1"], "core": True, "state": c1_state,
          "value": round(ratio_h, 3), "interval": ratio_interval_h,
          "threshold": {**THRESHOLDS["parity"], "direction": "above"},
+         "method": report_text.CHECK_METHODS["C1"],
          "sentence": (report_text.INCONCLUSIVE_REASONS[c1_reason] if c1_reason else
                       report_text.CHECK_SENTENCES["C1"]["pass" if c1_state == "pass" else "problem"]),
          "reason": c1_reason},
         {"code": "C2", "name": report_text.CHECK_NAMES["C2"], "core": True, "state": c2_state,
          "value": round(ratio_m, 3), "interval": ratio_interval_m,
          "threshold": {**THRESHOLDS["parity"], "direction": "above"},
+         "method": report_text.CHECK_METHODS["C2"],
          "sentence": (report_text.INCONCLUSIVE_REASONS[c2_reason] if c2_reason else
                       report_text.CHECK_SENTENCES["C2"]["pass" if c2_state == "pass" else "problem"]),
          "reason": c2_reason},
         {"code": "C3", "name": report_text.CHECK_NAMES["C3"], "core": False, "state": c3_state,
          "value": round(amplification, 3), "interval": None,
          "threshold": {**THRESHOLDS["amplification"], "direction": "below"},
+         "method": report_text.CHECK_METHODS["C3"],
          "sentence": report_text.AMPLIFICATION[c3_form]["headline"],
          "reason": None},
         {"code": "C4", "name": report_text.CHECK_NAMES["C4"], "core": False, "state": c4_state,
          "value": round(tpr_gap, 3) if tpr_gap is not None else None, "interval": None,
          "threshold": {**THRESHOLDS["equal_opportunity"], "direction": "below"},
+         "method": report_text.CHECK_METHODS["C4"],
          "sentence": (report_text.INCONCLUSIVE_REASONS[c4_reason] if c4_reason else
                       report_text.CHECK_SENTENCES["C4"]["pass" if c4_state == "pass" else "problem"]),
          "reason": c4_reason},
@@ -354,12 +401,14 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None,
          "value": round(max(rate_hws.values()), 3), "interval": None,
          "threshold": {**THRESHOLDS["sample_adequacy"], "direction": "below",
                        "measured": "max per-group selection-rate CI half-width"},
+         "method": report_text.CHECK_METHODS["C5"],
          "sentence": (report_text.INCONCLUSIVE_REASONS[c5_reason] if c5_reason else
                       report_text.CHECK_SENTENCES["C5"]["pass" if c5_state == "pass" else "problem"]),
          "reason": c5_reason},
     ]
 
     step(5)
+    influence = _influence(frame, features, categorical, numeric, y)
     proxies = []
     for c in features:
         if c == group_col:
@@ -436,6 +485,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None,
                         for c in clean_stats["dropped_empty_columns"]],
             "grouped_rare": [],
         },
+        "influence": influence,
         "proxies": proxies,
         "sampling": sampling_meta,
         "thresholds": THRESHOLDS,
@@ -445,5 +495,7 @@ def run(raw: bytes, dataset_name: str, confirmations: dict | None = None,
                 overall, g_high, g_low, gap_pts, verb, outcome_col),
             "provider": None,
         },
+        "privacy_line": report_text.PRIVACY_LINE,
+        "disclaimer": report_text.DISCLAIMER,
     }
     return result

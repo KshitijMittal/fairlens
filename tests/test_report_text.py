@@ -93,3 +93,9 @@ def test_privacy_and_disclaimer_verbatim():
 
 def test_all_five_checks_have_names():
     assert set(report_text.CHECK_NAMES) == {"C1", "C2", "C3", "C4", "C5"}
+
+
+def test_inconclusive_checks_speak_only_the_four_reason_phrases():
+    assert set(report_text.INCONCLUSIVE_REASONS.values()) == {
+        "Group too small", "Interval too wide", "No positives", "No negatives"}
+    assert set(report_text.CHECK_METHODS) == {"C1", "C2", "C3", "C4", "C5"}

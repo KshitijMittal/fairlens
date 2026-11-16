@@ -712,6 +712,7 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
       "value": 0.66,
       "interval": [0.58, 0.74],
       "threshold": { "pass_at": 0.90, "warn_at": 0.80, "direction": "above" },
+      "method": "Ratio of the lower group's selection rate to the higher, 95% bootstrap interval.",
       "sentence": "The decisions already in your data do not treat these groups equally.",
       "reason": null
     }
@@ -764,6 +765,14 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
     "grouped_rare": [ { "column": "job_title", "kept": 30 } ]
   },
 
+  "influence": {
+    "available": true,
+    "reason": null,
+    "method": "mean absolute SHAP",
+    "rows": 500,
+    "features": [ { "feature": "interview_score", "value": 0.4123 } ]
+  },
+
   "proxies": [
     { "column": "postcode",   "measure": "cramers_v",        "value": 0.41 },
     { "column": "job_title",  "measure": "cramers_v",        "value": 0.33 }
@@ -783,7 +792,10 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
     "kind": "template",
     "body": "…",
     "provider": null
-  }
+  },
+
+  "privacy_line": "We processed your file in memory and did not keep it. …",
+  "disclaimer": "These limits are our defaults, based on the common 80% rule. …"
 }
 ```
 
@@ -800,6 +812,7 @@ One object, returned by the final stream frame, by `GET /v1/analyses/{id}`, and 
 | `interval` is `null` or a two-element ascending array | The UI renders a whisker only when it exists |
 | `thresholds` is echoed in full | F3-AC3: the UI never hardcodes a limit |
 | `sampling` is `null` or an object naming the row cap used | F1-AC7: sampling is recorded and repeated on the report and in the JSON |
+| `influence` is `{ "available": false, "reason": "unavailable" }` when SHAP fails, and nothing else in the payload changes | F3-AC5: a broken explainer costs one technical section, not the verdict |
 | `narrative` is never `null` | If no `analysis_narratives` row exists, the builder returns the template with `kind: "template"`. F4-AC4 is structural, not a promise the database can quietly break |
 | No field ever holds a cell value | §3.1 |
 | The JSON export is this object, serialised | F5-AC4: no client-side recomputation. S8: built from the tables on every read |

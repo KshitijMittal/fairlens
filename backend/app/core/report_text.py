@@ -55,6 +55,14 @@ CHECK_SENTENCES = {
     },
 }
 
+CHECK_METHODS = {
+    "C1": "Ratio of the lower group's selection rate to the higher, 95% bootstrap interval.",
+    "C2": "The same ratio on out-of-fold model predictions, 95% bootstrap interval.",
+    "C3": "Change in the selection-rate gap between the recorded and model rates.",
+    "C4": "Largest difference in true-positive rate between the groups.",
+    "C5": "Largest 95% bootstrap half-width among the per-group selection rates.",
+}
+
 AMPLIFICATION = {
     "wider": {
         "headline": "The model makes the gap wider.",

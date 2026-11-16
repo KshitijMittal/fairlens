@@ -44,6 +44,14 @@ def test_pass_has_no_affected_groups(scholarship_result):
     assert scholarship_result["affected"] == []
 
 
+def test_every_check_carries_its_method_and_the_report_its_copy(loans_result):
+    for check in loans_result["checks"]:
+        assert check["method"].endswith(".")
+    assert loans_result["privacy_line"].startswith("We processed your file in memory")
+    assert loans_result["disclaimer"].startswith("These limits are our defaults")
+    assert loans_result["influence"]["method"] == "mean absolute SHAP"
+
+
 def test_imputed_medians_and_dropped_columns_are_reported():
     rows = ["group,amount,blank,label"]
     for i in range(30):
