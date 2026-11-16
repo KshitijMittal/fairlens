@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 test("drop -> confirm -> run -> report, with the URL changing only on result", async ({ page }) => {
   const email = `e2e-${Date.now()}@example.com`;
   const signup = await page.request.post("/api/v1/auth/signup", {
-    data: { email, password: "correct-horse-1" },
+    data: { email, password: "Correct-horse-1" },
   });
   expect(signup.ok()).toBeTruthy();
 
