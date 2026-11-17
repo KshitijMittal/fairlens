@@ -4,6 +4,9 @@ import { createRun } from "./run";
 
 const ORIGIN = new URL(process.env.BASE_URL ?? "http://localhost:3000").origin;
 
+const background = (page: import("@playwright/test").Page) =>
+  page.locator("body").evaluate((node) => getComputedStyle(node).backgroundColor);
+
 test("an explicit dark cookie is in the first byte of HTML", async ({ page, context }) => {
   const result = await createRun(page, "pass");
   await context.addCookies([{ name: "theme", value: "dark", url: ORIGIN }]);
@@ -12,10 +15,8 @@ test("an explicit dark cookie is in the first byte of HTML", async ({ page, cont
   expect(raw).toContain('data-theme="dark"');
 
   await page.goto(`/analysis/${result.id}`);
-  await expect(page.locator(".report")).toHaveAttribute("data-theme", "dark");
-  const paper = await page.locator(".report").evaluate(
-    (node) => getComputedStyle(node).backgroundColor);
-  expect(paper).toBe("rgb(20, 18, 15)");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await background(page)).toBe("rgb(20, 18, 15)");
 });
 
 test.describe("without JavaScript", () => {
@@ -25,9 +26,7 @@ test.describe("without JavaScript", () => {
     const result = await createRun(page, "pass");
     await page.context().addCookies([{ name: "theme", value: "light", url: ORIGIN }]);
     await page.goto(`/analysis/${result.id}`);
-    await expect(page.locator(".report")).toHaveAttribute("data-theme", "light");
-    const paper = await page.locator(".report").evaluate(
-      (node) => getComputedStyle(node).backgroundColor);
-    expect(paper).toBe("rgb(250, 249, 246)");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    expect(await background(page)).toBe("rgb(250, 249, 246)");
   });
 });
