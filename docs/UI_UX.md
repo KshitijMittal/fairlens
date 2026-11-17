@@ -154,15 +154,13 @@ The Inconclusive state keeps its cool neutral in both themes, which is the point
 
 | Cookie value | What the server renders | What supplies the colours |
 |---|---|---|
-| `light` | `<div class="report" data-theme="light">` | The light tokens |
-| `dark` | `<div class="report" data-theme="dark">` | The dark tokens |
-| `system` or absent | No attribute | `@media (prefers-color-scheme: dark)` selects the dark tokens |
+| `light` | `<html lang="en" data-theme="light">` | The light tokens |
+| `dark` | `<html lang="en" data-theme="dark">` | The dark tokens |
+| `system` or absent | `<html lang="en">` with no attribute | `@media (prefers-color-scheme: dark)` selects the dark tokens |
 
-**No JavaScript and no flash.** Because the cookie is read in the report's nested layout while the page is rendered, the correct theme is present in the first byte. When the preference is `system` there is nothing to resolve on the client at all — plain CSS media queries do it. There is no inline pre-paint script, so the CSP in TRD §11.1 needs no exception, and the theme works with JavaScript disabled.
+**No JavaScript and no flash.** The cookie is read in the root layout before the first byte of HTML, so the correct theme is present immediately. When the preference is `system` there is nothing to resolve on the client at all — plain CSS media queries do it. There is no inline pre-paint script, so the CSP in TRD §11.1 needs no exception, and the theme works with JavaScript disabled.
 
-The attribute sits on the report wrapper rather than `<html>` for one reason: the screens built before M3 still carry literal colours, so a page-wide dark attribute would half-theme them. The site header and page ground follow the report through `body:has(.report[data-theme="dark"])`, so a dark report does not sit under a light bar. When M5 converts the older screens to tokens, the cookie moves to `<html>` in the root layout and that `:has()` rule goes away.
-
-The one cost is that the report route renders dynamically, which it already did: it reads the session cookie. Every other route keeps its rendering mode, so the landing page stays static and gets the system preference for free — it ignores an explicit override for signed-out visitors. The control lives in `/account` (D3), so an explicit override only exists for someone who is signed in anyway.
+The attribute sits on `<html>` and the tokens on `:root`, so the header, the page ground and every screen share one theme. The cost is that every route renders dynamically, which is accepted because every screen is themed; there is no static route left to protect. The control lives in `/account` (D3), so an explicit override only exists for someone who is signed in anyway.
 
 ---
 
@@ -185,24 +183,23 @@ The one cost is that the report route renders dynamically, which it already did:
 ### Report page
 
 ```
-┌───────────────────────────────────────────────┬──────────────┐
-│  contents strip (sticky)                      │              │
-│  ─────────────────────────────────────────    │   chat       │
-│  01  The verdict                ← lead block  │   panel      │
-│  ─────────────────────────────────────────    │   (380px,    │
-│  02  Who is affected            ← chart       │   closed     │
-│  ─────────────────────────────────────────    │   until      │
-│  03  What the model does        ← checks      │   asked)     │
-│  ─────────────────────────────────────────    │              │
-│  04  What to do about it        ← repairs     │              │
-│  ─────────────────────────────────────────    │              │
-│  05  The method                 ← technical   │              │
-└───────────────────────────────────────────────┴──────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  contents strip (sticky)                                     │
+│  ──────────────────────────────────────────────────────────  │
+│  01  The verdict                ← lead block                 │
+│  ──────────────────────────────────────────────────────────  │
+│  02  Who is affected            ← chart                      │
+│  ──────────────────────────────────────────────────────────  │
+│  03  What the model does        ← checks                     │
+│  ──────────────────────────────────────────────────────────  │
+│  04  What to do about it        ← repairs (M4)               │
+│  ──────────────────────────────────────────────────────────  │
+│  05  The method                 ← technical                  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-- Numbered sections (`01`–`05`) in `label` caps at `ink-faint`, title in `h2`.
-- The contents strip sits under the verdict, then sticks to the top on scroll and highlights the current section.
-- Below 1280 px the chat panel moves under the content and the gutter drops to 24 px.
+- Numbered sections (`01`–`05`) in `label` caps at `ink-faint`, title in `h2`. M3 ships `01`–`04` with the method as `04`; M4 inserts repairs as `04` and renumbers the method to `05`.
+- The contents strip is not built yet. The page is a single column at every width, with the navigation deferred to the same milestone as the chat panel, neither of which is in M3.
 - Below 768 px everything is one column, tables scroll horizontally inside their container rather than shrinking type.
 
 ---
@@ -263,42 +260,46 @@ Accessibility: the chart has a text alternative naming the groups and their rate
 
 ### 6.4 Confirmation block (U7)
 
-Three lines, each independently verifiable:
+What ships is a `surface` panel, not the three-line strip drawn in the first draft. The head is the question in `h2` with a `Change` text button on the right. Below it, four `tile`s in a responsive grid:
 
 ```
-────────────────────────────────────────────────────────────
-OUTCOME COLUMN                                    change
-approved — treated as the positive outcome
-612 of 900 rows
-
-GROUPS COMPARED                                   change
-women and men
-318 and 582 rows
-
-AGE                                               change
-banded into 18–24, 25–34, 35–44, 45–54, 55–64, 65+
-────────────────────────────────────────────────────────────
+┌──────────────────────────────────────────────────────────────┐
+│  Confirm what this data means                         Change │
+│  ┌──────────────────┐  ┌──────────────────┐                  │
+│  │ OUTCOME COLUMN   │  │ DEMOGRAPHIC      │                  │
+│  │ approved         │  │ sex              │                  │
+│  │ Positive: …      │  │ 2 groups  ▸      │                  │
+│  └──────────────────┘  └──────────────────┘                  │
+│  ┌──────────────────┐  ┌──────────────────┐                  │
+│  │ AGE BANDING      │  │ FACTOR COLUMNS   │                  │
+│  │ Not available    │  │ None             │                  │
+│  └──────────────────┘  └──────────────────┘                  │
+│  900 rows × 8 columns                                        │
+│  [ Run analysis ]                         [ Cancel ]          │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 - Label in `label` caps; the value in `body` at `ink`; the counts in `small` at `ink-muted`.
-- `change` is a text button, not an icon, right-aligned on the label row.
-- The whole block is one inset `surface` panel with a hairline border and 2 px radius.
-- **Group rates are never shown here.** That is check C1; showing it would spoil the verdict on the screen before the verdict.
+- `Change` is a text button, not an icon, and swaps the tiles for the edit form: outcome select, positive value, demographic select, the age-banding checkbox, then Run analysis and Cancel.
+- Group values sit behind a `details` disclosure, with their row counts. **Group rates are never shown here.** That is check C1; showing it would spoil the verdict on the screen before the verdict.
+- A multi-sheet workbook adds a sheet select below the tiles, and above 50,000 rows a required radio choice disables Run analysis until one is picked.
+- Warnings render in the `warn` notice block above the actions; a single-value demographic column blocks the run until the column changes.
 
 ### 6.5 Run log (U11, U12)
 
 | Property | Specification |
 |---|---|
-| Container | `surface` panel, 220 px fixed height, hairline border, scrolls internally |
-| Anchor | The confirmed meaning collapses to a single `small` line pinned above the log, `ink-muted`, and stays through the verdict |
-| Line | `body` at `ink` while live; previous lines transition to `ink-muted` over 400 ms |
-| Glyph field | 96 × 36 px to the left of the live line: 16 × 6 monospace glyphs in `accent` at low opacity, one column scanning on a 1.4 s loop |
-| Fold lines | `fold 3 of 5` indented 24 px in `small` at `ink-muted` |
+| Container | `surface` panel, head with `Running analysis` and a destructive-text `Cancel`, body fixed at 220 px and scrolling internally |
+| Line | One row per stage: a dot, the server's stage label at `body` 500 `ink`, and `Stage n of 6` in `small` at `ink-muted` |
+| Dot | 8 px, `ink` while the stage is live, `pass` green on `saving` |
+| Waiting | A `ping` frame renders as a tinted `inconclusive` row reading `Waiting for stage to complete…` |
 | Overflow | Oldest lines leave the top of the panel; the panel never grows the page |
-| Live region | `aria-live="polite"` on the list, `aria-atomic="false"` |
-| Content rule | No digits, no findings. Eleven frames maximum (six stages, five folds) |
+| Live region | `aria-live="polite"` on the list |
+| Content rule | No verdict figures and no findings. The only numerals are the stage counter |
 
-Under `prefers-reduced-motion` the field renders as a static block of glyphs and lines appear without transition.
+The glyph field, the `fold n of 5` lines and the collapse of the confirmed meaning above the log were drawn in the first draft and are not shipped: the stream carries six stage frames, so there are no folds to show, and the card is replaced by the log rather than collapsed above it.
+
+Under `prefers-reduced-motion` no transition is applied; the rows simply appear. There is no motion in the shipped log today.
 
 ### 6.6 Technical appendix
 
@@ -320,7 +321,7 @@ Tables have captions, `th` with `scope`, and right-aligned numeric columns.
 | Primary | Filled `ink`, paper text, 2 px radius, 44 px min height |
 | Secondary | Hairline border, ink text, transparent fill |
 | Destructive | Text in the Fail colour; filled only inside the delete dialog |
-| Text button | Accent colour, underline drawn in from the left on hover |
+| Text button | Accent colour, no underline until hover, then a plain underline |
 | Input | 1 px `hairline` border, `surface` fill, 2 px radius, 44 px height, label above in `label` caps |
 | Focus | 2 px `accent` ring at 2 px offset, always visible, never animated away, never suppressed by an outline reset |
 | Disabled | `ink-faint` text, no opacity change on the whole control — a control that fades out of existence is a control people miss |
