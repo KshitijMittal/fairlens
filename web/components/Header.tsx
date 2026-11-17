@@ -39,7 +39,7 @@ export default function Header() {
     return (
       <header className="site-header">
         <div className="site-header__row">
-          <span style={{ color: "var(--ink-faint, #8A8794)" }}>Loading…</span>
+          <span className="faint">Loading…</span>
         </div>
       </header>
     );
@@ -48,17 +48,13 @@ export default function Header() {
   return (
     <header className="site-header">
       <div className="site-header__row">
-        <Link href="/" style={{ fontSize: 20, fontWeight: 600, textDecoration: "none",
-          color: "var(--ink, #17161A)" }}>
+        <Link href="/" className="site-header__brand">
           FairLens
         </Link>
         <nav>
           {user ? (
             <>
-              <span className="site-header__email" style={{ color: "var(--ink-muted, #55525C)",
-                fontSize: 15 }}>
-                {user.display_name || user.email}
-              </span>
+              <span className="site-header__email">{user.display_name || user.email}</span>
               <button
                 onClick={async () => {
                   await fetch("/api/v1/auth/logout", { method: "POST", credentials: "include" });
@@ -66,30 +62,17 @@ export default function Header() {
                   router.push("/");
                   router.refresh();
                 }}
-                style={{
-                  padding: "8px 16px", borderRadius: 2,
-                  border: "1px solid var(--fail, #8C2F2A)",
-                  background: "var(--paper, #FAF9F6)", color: "var(--fail, #8C2F2A)",
-                  cursor: "pointer", fontSize: 15, whiteSpace: "nowrap",
-                }}
+                className="btn btn--destructive"
               >
                 Sign out
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" style={{ color: "var(--ink, #17161A)", textDecoration: "none",
-                fontSize: 15 }}>
+              <Link href="/login" className="btn btn--text">
                 Sign in
               </Link>
-              <Link
-                href="/signup"
-                style={{
-                  padding: "8px 16px", borderRadius: 2, border: "1px solid var(--ink, #17161A)",
-                  background: "var(--ink, #17161A)", color: "var(--paper, #FAF9F6)",
-                  textDecoration: "none", fontSize: 15, whiteSpace: "nowrap",
-                }}
-              >
+              <Link href="/signup" className="btn btn--primary">
                 Sign up
               </Link>
             </>

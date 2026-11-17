@@ -79,24 +79,15 @@ export default function Dropzone({
   return (
     <div>
       <div
+        className={`dropzone${dragActive ? " dropzone--active" : ""}`}
         onClick={handleClick}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        style={{
-          border: `2px dashed ${dragActive ? "#17161A" : "#D6D3CC"}`,
-          borderRadius: 4,
-          padding: "48px 24px",
-          textAlign: "center",
-          background: dragActive ? "#F5F3EF" : "#FAF9F6",
-          cursor: disabled ? "not-allowed" : "pointer",
-          transition: "all 0.15s ease",
-          opacity: disabled ? 0.6 : 1,
-          position: "relative",
-        }}
         role="button"
         tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled || undefined}
         onKeyDown={(e) => {
           if ((e.key === "Enter" || e.key === " ") && !disabled) {
             e.preventDefault();
@@ -113,27 +104,23 @@ export default function Dropzone({
           disabled={disabled}
         />
         <svg
-          width="48"
-          height="48"
+          width="40"
+          height="40"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
-          style={{ color: "#8A8794", marginBottom: 16 }}
+          strokeWidth="1.25"
+          aria-hidden="true"
         >
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="17 8 12 3 7 8" />
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
-        <p style={{ margin: "0 0 8px", fontSize: 17, color: "#17161A" }}>
-          Drop a CSV or XLSX file here, or click to browse
-        </p>
-        <p style={{ margin: 0, fontSize: 14, color: "#55525C" }}>
-          Maximum {maxSizeMB} MB
-        </p>
+        <p className="title">Drop a CSV or XLSX file here, or click to browse</p>
+        <p className="hint">Maximum {maxSizeMB} MB</p>
       </div>
       {error && (
-        <p style={{ color: "#8C2F2A", fontSize: 14, marginTop: 12 }}>{error}</p>
+        <p className="notice" style={{ marginTop: 12 }}>{error}</p>
       )}
     </div>
   );

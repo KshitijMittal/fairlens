@@ -102,80 +102,76 @@ export default function Home() {
   };
 
   return (
-    <>
-      <main style={{ maxWidth: 880, margin: "0 auto", padding: "48px 24px", fontFamily: "system-ui" }}>
-        <h1 style={{ fontSize: 40, lineHeight: 1.1, marginBottom: 8 }}>FairLens</h1>
-        <p style={{ color: "#55525C", marginBottom: 40 }}>
-          Check a dataset before a model learns from it.
-        </p>
+    <main className="page">
+      <h1 className="display">FairLens</h1>
+      <p className="lede muted" style={{ marginTop: 16, maxWidth: "42ch" }}>
+        Check a dataset before a model learns from it.
+      </p>
 
+      <div style={{ marginTop: 96 }}>
         {state === "idle" && (
           <>
-            {error && (
-              <div style={{ marginBottom: 24, padding: 16, background: "#FBEDEB", border: "1px solid #F5C6C4", borderRadius: 2, color: "#8C2F2A" }}>
-                {error}
-              </div>
-            )}
-            <section style={{ marginBottom: 48 }}>
-              <h2 style={{ fontSize: 22, marginBottom: 16 }}>Bundled samples</h2>
-              {SAMPLES.map((s) => (
-                <section
-                  key={s.slug}
-                  data-testid={`card-${s.slug}`}
-                  style={{ borderTop: "1px solid #E3E0D8", padding: "24px 0", display: "flex", gap: 24, alignItems: "center", justifyContent: "space-between" }}
-                >
-                  <div style={{ maxWidth: 560 }}>
-                    <h3 style={{ fontSize: 22, margin: "0 0 6px" }}>{s.name}</h3>
-                    <p style={{ color: "#55525C", margin: 0, fontSize: 15 }}>{s.description}</p>
-                    <p style={{ color: "#8A8794", margin: "8px 0 0", fontSize: 13, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                      Expected: {s.expected}
-                    </p>
-                  </div>
-                  <SampleRunButton slug={s.slug} label="Run the analysis" />
-                </section>
-              ))}
-            </section>
+            {error && <p className="notice" style={{ marginBottom: 32 }}>{error}</p>}
 
             <section>
-              <h2 style={{ fontSize: 22, marginBottom: 16 }}>Analyze your own file</h2>
-              <p style={{ color: "#55525C", marginBottom: 16 }}>
-                Upload a CSV or XLSX file (max 50 MB). You'll need to sign in to run the analysis.
+              <h2>Bundled samples</h2>
+              <div style={{ marginTop: 32 }}>
+                {SAMPLES.map((s, index) => (
+                  <section
+                    key={s.slug}
+                    data-testid={`card-${s.slug}`}
+                    className={`sample${index === SAMPLES.length - 1 ? " sample--last" : ""}`}
+                  >
+                    <div>
+                      <h3>{s.name}</h3>
+                      <p className="description">{s.description}</p>
+                      <p className={`eyebrow expected expected--${s.expected.toLowerCase()}`}>
+                        Expected: {s.expected}
+                      </p>
+                    </div>
+                    <SampleRunButton slug={s.slug} label="Run the analysis" />
+                  </section>
+                ))}
+              </div>
+            </section>
+
+            <section style={{ marginTop: 96 }}>
+              <h2>Analyze your own file</h2>
+              <p className="muted prose" style={{ marginTop: 16 }}>
+                Upload a CSV or XLSX file (max 50 MB). You&apos;ll need to sign in to run the
+                analysis.
               </p>
-              {signedIn === false ? (
-                <p style={{ color: "#55525C", fontSize: 16 }}>
-                  <a href="/login" style={{ color: "#17161A", textDecoration: "underline" }}>Sign in</a>
-                  {" "}or{" "}
-                  <a href="/signup" style={{ color: "#17161A", textDecoration: "underline" }}>create an account</a>
-                  {" "}to analyse your own file.
-                </p>
-              ) : (
-                <Dropzone
-                  onFileSelect={handleFileSelect}
-                  acceptedTypes={[".csv", ".xlsx"]}
-                  maxSizeMB={50}
-                  disabled={signedIn === null}
-                />
-              )}
+              <div style={{ marginTop: 32 }}>
+                {signedIn === false ? (
+                  <p className="muted">
+                    <a href="/login">Sign in</a> or <a href="/signup">create an account</a> to
+                    analyse your own file.
+                  </p>
+                ) : (
+                  <Dropzone
+                    onFileSelect={handleFileSelect}
+                    acceptedTypes={[".csv", ".xlsx"]}
+                    maxSizeMB={50}
+                    disabled={signedIn === null}
+                  />
+                )}
+              </div>
             </section>
           </>
         )}
 
         {state === "inspecting" && (
-          <div style={{ textAlign: "center", padding: 48 }}>
-            <p style={{ color: "#55525C", fontSize: 17 }}>Inspecting file…</p>
-          </div>
+          <p className="muted" style={{ padding: "48px 0" }}>Inspecting file…</p>
         )}
 
         {state === "confirming" && inspectResult && (
-          <>
-            <ConfirmationCard
-              card={inspectResult.card}
-              metadata={inspectResult.metadata}
-              onConfirm={handleConfirm}
-              onSheetChange={(sheet) => file && handleFileSelect(file, sheet)}
-              onCancel={handleCancel}
-            />
-          </>
+          <ConfirmationCard
+            card={inspectResult.card}
+            metadata={inspectResult.metadata}
+            onConfirm={handleConfirm}
+            onSheetChange={(sheet) => file && handleFileSelect(file, sheet)}
+            onCancel={handleCancel}
+          />
         )}
 
         {state === "running" && file && confirmations && (
@@ -187,7 +183,7 @@ export default function Home() {
             onCancel={handleCancel}
           />
         )}
-      </main>
-    </>
+      </div>
+    </main>
   );
 }

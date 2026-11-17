@@ -33,15 +33,11 @@ export default function SampleRunButton({ slug, label }: { slug: string; label: 
         onClick={run}
         disabled={busy}
         data-testid={`run-${slug}`}
-        style={{
-          padding: "10px 18px", borderRadius: 2, border: "1px solid #17161A",
-          background: "#17161A", color: "#FAF9F6", cursor: busy ? "wait" : "pointer",
-          fontSize: 15,
-        }}
+        className="btn btn--primary"
       >
         {busy ? "Running…" : label}
       </button>
-      {error && <p style={{ color: "#8C2F2A", fontSize: 14 }}>{error}</p>}
+      {error && <p className="notice" style={{ marginTop: 12 }}>{error}</p>}
     </div>
   );
 }
