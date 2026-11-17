@@ -15,3 +15,5 @@ samples/_gate/
 .neon
 
 *.egg-info/
+.vercel
+.env*
