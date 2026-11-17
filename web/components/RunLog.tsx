@@ -128,46 +128,36 @@ export default function RunLog({
     onCancel();
   };
 
+  const finished = frames.some((f) => f.event === "result");
+
   return (
-    <div style={{ border: "1px solid #E3E0D8", borderRadius: 4, padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, margin: 0 }}>Running analysis</h2>
+    <section className="panel">
+      <div className="panel__head">
+        <h2>Running analysis</h2>
         <button
           onClick={handleCancel}
-          disabled={frames.some(f => f.event === "result") || aborted}
-          style={{
-            padding: "8px 16px", borderRadius: 2, border: "1px solid #8C2F2A",
-            background: "#FAF9F6", color: "#8C2F2A", cursor: "pointer", fontSize: 14,
-            opacity: frames.some(f => f.event === "result") || aborted ? 0.5 : 1,
-          }}
+          disabled={finished || aborted}
+          className="btn btn--destructive"
         >
           Cancel
         </button>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="log" aria-live="polite">
+        {frames.length === 0 && <p className="muted">Preparing…</p>}
+
         {frames.map((frame, i) => {
           if (frame.event === "stage") {
             const stageKey = frame.stage as string;
             return (
-              <div
-                key={i}
-                style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-                  background: "#FAF9F6", borderRadius: 2, border: "1px solid #E3E0D8",
-                }}
-              >
-                <div
-                  style={{
-                    width: 8, height: 8, borderRadius: "50%",
-                    background: stageKey === "saving" ? "#1F5A3D" : "#17161A",
-                  }}
+              <div key={i} className="log__row">
+                <span
+                  className={`log__dot${stageKey === "saving" ? " log__dot--done" : ""}`}
+                  aria-hidden="true"
                 />
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: 15, color: "#17161A", fontWeight: 500 }}>
-                    {frame.label}
-                  </p>
-                  <p style={{ margin: "2px 0 0", fontSize: 13, color: "#55525C" }}>
+                <div>
+                  <p className="log__label">{frame.label}</p>
+                  <p className="log__meta">
                     Stage {frame.index} of {frame.total}
                   </p>
                 </div>
@@ -176,26 +166,14 @@ export default function RunLog({
           }
           if (frame.event === "ping") {
             return (
-              <div
-                key={i}
-                style={{
-                  display: "flex", alignItems: "center", gap: 12, padding: "8px 16px",
-                  background: "#EEF1F6", borderRadius: 2, border: "1px solid #D6D3CC", fontSize: 13, color: "#3E4C63",
-                }}
-              >
+              <div key={i} className="log__row log__row--ping">
                 Waiting for stage to complete…
               </div>
             );
           }
           return null;
         })}
-
-        {frames.length === 0 && (
-          <div style={{ textAlign: "center", padding: 32, color: "#55525C" }}>
-            Preparing…
-          </div>
-        )}
       </div>
-    </div>
+    </section>
   );
 }

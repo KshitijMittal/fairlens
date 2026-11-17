@@ -18,11 +18,6 @@ export function passwordProblems(value: string): Rule[] {
   return RULES.filter((rule) => !rule.test(value));
 }
 
-const fieldStyle = {
-  width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #D6D3CC",
-  fontSize: 16, boxSizing: "border-box" as const,
-};
-
 export default function PasswordField({
   id,
   label = "Password",
@@ -44,10 +39,8 @@ export default function PasswordField({
   const showHint = value.length === 0 && !showProblems;
 
   return (
-    <div>
-      <label htmlFor={id} style={{ display: "block", fontSize: 14, marginBottom: 6, color: "#17161A" }}>
-        {label}
-      </label>
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
       <input
         id={id}
         type="password"
@@ -59,23 +52,13 @@ export default function PasswordField({
         autoComplete={autoComplete}
         aria-invalid={showProblems || undefined}
         aria-describedby={`${id}-rules`}
-        style={fieldStyle}
+        className="input"
       />
-      <div id={`${id}-rules`} aria-live="polite" style={{ marginTop: 6, minHeight: 18 }}>
-        {showHint && (
-          <p style={{ margin: 0, color: "#8A8794", fontSize: 12 }}>{HINT}</p>
-        )}
+      <div id={`${id}-rules`} aria-live="polite" style={{ minHeight: 18 }}>
+        {showHint && <p className="hint faint">{HINT}</p>}
         {showProblems &&
           problems.map((problem) => (
-            <p
-              key={problem.key}
-              style={{
-                margin: 0,
-                color: "#8C2F2A",
-                fontSize: 12,
-                animation: "fl-rule-in 160ms ease-out both",
-              }}
-            >
+            <p key={problem.key} className="hint hint--problem">
               {problem.message}
             </p>
           ))}
