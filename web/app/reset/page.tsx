@@ -4,11 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import PasswordField, { passwordProblems } from "@/components/PasswordField";
 
-const fieldStyle = {
-  width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #D6D3CC",
-  fontSize: 16, boxSizing: "border-box" as const,
-};
-
 export default function ResetPage() {
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -47,16 +42,14 @@ export default function ResetPage() {
 
   if (done) {
     return (
-      <main style={{ maxWidth: 440, margin: "64px auto", padding: "0 24px", fontFamily: "system-ui", textAlign: "center" }}>
-        <h1 style={{ fontSize: 30, marginBottom: 16 }}>
-          {done === "request" ? "Check your email" : "Password changed"}
-        </h1>
-        <p style={{ color: "#55525C", marginBottom: 32, fontSize: 17, lineHeight: 1.6 }}>
+      <main className="page page--narrow">
+        <h1>{done === "request" ? "Check your email" : "Password changed"}</h1>
+        <p className="muted" style={{ margin: "16px 0 32px" }}>
           {done === "request"
             ? "If an account with that email exists, a reset link has been sent. The link expires in 30 minutes. Check your spam folder if it has not arrived within a minute."
             : "Your password has been reset and every other session has been signed out."}
         </p>
-        <Link href="/login" style={{ color: "#17161A", textDecoration: "underline" }}>
+        <Link href="/login" className="btn btn--text">
           Back to sign in
         </Link>
       </main>
@@ -66,11 +59,9 @@ export default function ResetPage() {
   const confirming = Boolean(token);
 
   return (
-    <main style={{ maxWidth: 440, margin: "64px auto", padding: "0 24px", fontFamily: "system-ui" }}>
-      <h1 style={{ fontSize: 30, marginBottom: 8 }}>
-        {confirming ? "Choose a new password" : "Reset your password"}
-      </h1>
-      <p style={{ color: "#55525C", marginBottom: 32 }}>
+    <main className="page page--narrow">
+      <h1>{confirming ? "Choose a new password" : "Reset your password"}</h1>
+      <p className="muted" style={{ margin: "8px 0 32px" }}>
         {confirming
           ? "Choose a new password. The rules are shown under the field."
           : "Enter your email address and we'll send you a link to reset your password."}
@@ -88,7 +79,7 @@ export default function ResetPage() {
             : await post("/api/v1/auth/reset/request", { email });
           if (ok) setDone(confirming ? "confirm" : "request");
         }}
-        style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        className="form"
       >
         {confirming ? (
           <PasswordField
@@ -99,10 +90,8 @@ export default function ResetPage() {
             submitted={submitted}
           />
         ) : (
-          <div>
-            <label htmlFor="reset-email" style={{ display: "block", fontSize: 14, marginBottom: 6, color: "#17161A" }}>
-              Email
-            </label>
+          <div className="field">
+            <label htmlFor="reset-email">Email</label>
             <input
               id="reset-email"
               type="email"
@@ -110,28 +99,20 @@ export default function ResetPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
-              style={fieldStyle}
+              className="input"
             />
           </div>
         )}
 
-        {error && <p style={{ color: "#8C2F2A", fontSize: 14 }}>{error}</p>}
+        {error && <p className="notice">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={busy}
-          style={{
-            padding: "12px", borderRadius: 2, border: "1px solid #17161A",
-            background: "#17161A", color: "#FAF9F6", cursor: busy ? "wait" : "pointer",
-            fontSize: 16, fontWeight: 500,
-          }}
-        >
+        <button type="submit" disabled={busy} className="btn btn--primary btn--wide">
           {busy ? "Working…" : confirming ? "Set new password" : "Send reset link"}
         </button>
       </form>
 
-      <p style={{ marginTop: 24, color: "#55525C", fontSize: 15, textAlign: "center" }}>
-        <Link href="/login" style={{ color: "#17161A", textDecoration: "underline" }}>Back to sign in</Link>
+      <p className="auth-foot">
+        <Link href="/login">Back to sign in</Link>
       </p>
     </main>
   );

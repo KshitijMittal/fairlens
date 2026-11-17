@@ -42,68 +42,52 @@ export default function SignupPage() {
   }
 
   return (
-    <main style={{ maxWidth: 440, margin: "64px auto", padding: "0 24px", fontFamily: "system-ui" }}>
-      <h1 style={{ fontSize: 30, marginBottom: 8 }}>Create an account</h1>
-      <p style={{ color: "#55525C", marginBottom: 32 }}>
+    <main className="page page--narrow">
+      <h1>Create an account</h1>
+      <p className="muted" style={{ margin: "8px 0 32px" }}>
         Use email and password.
       </p>
 
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div>
-          <label style={{ display: "block", fontSize: 14, marginBottom: 6, color: "#17161A" }}>
-            Email
-          </label>
+      <form onSubmit={handleSubmit} className="form">
+        <div className="field">
+          <label htmlFor="signup-email">Email</label>
           <input
+            id="signup-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            style={{
-              width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #D6D3CC",
-              fontSize: 16, boxSizing: "border-box",
-            }}
+            className="input"
           />
         </div>
 
-        <div>
-          <label style={{ display: "block", fontSize: 14, marginBottom: 6, color: "#17161A" }}>
-            Display name (optional)
-          </label>
+        <div className="field">
+          <label htmlFor="signup-name">Display name (optional)</label>
           <input
+            id="signup-name"
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={100}
-            style={{
-              width: "100%", padding: "12px 14px", borderRadius: 2, border: "1px solid #D6D3CC",
-              fontSize: 16, boxSizing: "border-box",
-            }}
+            className="input"
           />
         </div>
 
         <PasswordField id="signup-password" value={password} onChange={setPassword} submitted={submitted} />
 
-        {error && <p style={{ color: "#8C2F2A", fontSize: 14 }}>{error}</p>}
+        {error && <p className="notice">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={busy}
-          style={{
-            padding: "12px", borderRadius: 2, border: "1px solid #17161A",
-            background: "#17161A", color: "#FAF9F6", cursor: busy ? "wait" : "pointer",
-            fontSize: 16, fontWeight: 500,
-          }}
-        >
+        <button type="submit" disabled={busy} className="btn btn--primary btn--wide">
           {busy ? "Creating account…" : "Create account"}
         </button>
       </form>
 
-      <p style={{ marginTop: 24, color: "#55525C", fontSize: 15, textAlign: "center" }}>
-        Already have an account? <Link href="/login" style={{ color: "#17161A", textDecoration: "underline" }}>Sign in</Link>
+      <p className="auth-foot">
+        Already have an account? <Link href="/login">Sign in</Link>
       </p>
-      <p style={{ marginTop: 8, color: "#55525C", fontSize: 15, textAlign: "center" }}>
-        <Link href="/reset" style={{ color: "#17161A", textDecoration: "underline" }}>Reset password</Link>
+      <p className="auth-foot">
+        <Link href="/reset">Reset password</Link>
       </p>
     </main>
   );
