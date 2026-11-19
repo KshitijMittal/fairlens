@@ -30,7 +30,7 @@ services:
       - BREVO_SENDER=${BREVO_SENDER}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - APP_ORIGIN=http://localhost:3000
+      - APP_ORIGIN=${APP_ORIGIN:-http://localhost:3000}
     ports:
       - "7860:7860"
     depends_on:
