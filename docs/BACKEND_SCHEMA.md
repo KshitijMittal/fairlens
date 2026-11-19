@@ -5,7 +5,7 @@
 | **Version** | 2.2 (29 Oct: anonymous sample rule, repairs refresh scope, repairs read query) |
 | **Status** | Decisions closed (8 of 8). Implementation Plan written. |
 | **Date** | 28 October 2026 |
-| **Baseline** | `docs/PRD.md` (v2.3 incl. §8.5 correction), `docs/TRD.md` (v2.4), `docs/APP_FLOW.md` (v2.3), `docs/UI_UX.md` (v2.2) |
+| **Baseline** | `docs/PRD.md` (v2.3 incl. §8.5 correction), `docs/TRD.md` (v2.4), `docs/APP_FLOW.md` (v2.3), `docs/UI_UX.md` (v3.3) |
 | **Companion** | `backend/app/db/migrations/*.sql` — this document is the specification; those files are the implementation |
 | **Next document** | `docs/IMPLEMENTATION_PLAN.md` (written; a change here requires a matching change there) |
 

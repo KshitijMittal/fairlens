@@ -30,8 +30,8 @@
 ```
                        ┌──────────────────────────────┐
                        │  /  landing                  │
-   anon ──────────────▶│  three sample cards          │
-                       │  dropzone → sign-in prompt   │
+   anon ──────────────▶│  headline + dropzone         │
+                       │  three sample cards          │
                        └───────────┬──────────────────┘
                                    │ choose sample / choose file
                                    ▼
@@ -119,14 +119,15 @@ Two rules that apply to every screen:
 
 The only screen an anonymous visitor needs, and the busiest screen in the app: it holds upload, confirmation and the run, in place, without navigation.
 
-**Regions.** Header (sign in / account), a one-paragraph statement of what the product does, three sample cards, the dropzone area, and — once a file exists — the confirmation card or the run log in that same space.
+**Regions.** Header (one action), a one-paragraph statement of what the product does with the dropzone beside it, three sample cards, and — once a file exists — the confirmation card or the run log in place of the hero.
 
 #### States
 
 | State | Trigger | What is shown | Available actions |
 |---|---|---|---|
-| **Signed out, idle** | default for a new visitor | Three sample cards, each naming the dataset, what it demonstrates, and which checks it is expected to fail. Where the dropzone would be, one line: *to analyse your own file, sign in*. | Run a sample · Sign in · Create account · Read privacy |
-| **Signed in, idle** | session present | The same, with a working dropzone replacing the sign-in line | Run a sample · Drop or choose a file · Sign out |
+| **Signed out, idle** | default for a new visitor | The headline, the hero dropzone reading "Click to sign in - samples need no account", three sample cards, the footer. No file input exists yet. The app-bar action and the dropzone both open the sign-in dialog in place. | Run a sample · Sign in · Create account · Read privacy |
+| **Sign-in dialog** | app bar or the hero dropzone while signed out | A 400 px native `<dialog>` over the page with the same email/password and Google form as `/login`; Escape or the close button dismisses it and the page is unchanged | Sign in · Create account · Forgot password · Close |
+| **Signed in, idle** | session present | The same, with the dropzone picking files instead of opening the dialog | Run a sample · Drop or choose a file · Sign out |
 | **Dragging over** | dragenter on the dropzone | Dropzone highlights; copy changes to the file rules (CSV or XLSX, up to 50 MB) | Drop |
 | **File chosen, inspecting** | file dropped | The filename, size, and a short indeterminate progress line. The confirm card is not yet shown, because nothing is known about the file | Cancel |
 | **Confirmation card** | inspect succeeded | Outcome column in words · which value counts as positive, with counts · the groups being compared, with counts (usually two; age banding gives six) · what happened to any numeric demographic (age banded, and the bands are stated) · how many other columns are factors · one primary action, one secondary | **Looks right — run the analysis** · **Change** |
@@ -261,7 +262,9 @@ Four small screens with more failure states than their size suggests.
 |---|---|---|
 | **Idle** | Continue with Google · or email and password · links to create an account and to reset | Sign in |
 | **Submitting** | The form disabled with a progress line; the fields keep their values | — |
-| **Wrong credentials** | One message for both wrong password and unknown email: *email or password is incorrect*. Never which | Retry |
+| **Unknown email** | *No account uses this email. Create one first.* The create link is one line below | Create account · retry |
+| **Wrong password** | *Incorrect password for this email.* | Retry · reset |
+| **Google-only account** | *This account signs in with Google. Use Continue with Google.* | Continue with Google |
 | **Rate limited** | How long to wait, in minutes | — |
 | **Google unavailable** | The Google button disabled with a line saying email sign-in still works | Sign in with password |
 | **Session already valid** | Straight redirect to `/` | — |
@@ -324,7 +327,9 @@ Four small screens with more failure states than their size suggests.
 | From | Event | To |
 |---|---|---|
 | `/` signed out | sample clicked | `/` confirmation card (prefilled) |
-| `/` signed out | dropzone / sign-in line clicked | `/login` |
+| `/` signed out | app bar or hero dropzone clicked | `/` sign-in dialog, over the page |
+| `/` sign-in dialog | dismissed | `/` signed out, idle, page unchanged |
+| `/` sign-in dialog | success | `/` signed in, idle |
 | `/login` | success | `/` signed in, idle |
 | `/` signed in | file dropped | `/` inspecting |
 | `/` inspecting | inspect ok | `/` confirmation card |
@@ -426,7 +431,7 @@ The share page offers the same button, so a forwarded report can be forwarded on
 | Not here | Where |
 |---|---|
 | Colours, type, spacing, iconography | `docs/UI_UX.md` |
-| The actual words of the verdict headline and the amplification sentence | `docs/UI_UX.md` — this is PRD R6, still open |
+| The actual words of the verdict headline and the amplification sentence | `docs/UI_UX.md` §7.1 and §7.3 (PRD R6, resolved) |
 | Chart marks, the interval whisker, tooltips | `docs/UI_UX.md` |
 | Table columns and API field names | `docs/BACKEND_SCHEMA.md` |
 | Order of construction, file by file | `docs/IMPLEMENTATION_PLAN.md` |

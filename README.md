@@ -58,7 +58,7 @@ Upload a CSV (or use one of the three bundled samples), confirm what the columns
 git clone <repo>
 cd fairlens
 
-# Start local stack (Postgres on :5433, API on :7860)
+# Start local stack (Postgres on :5433, API on :7260)
 docker compose up -d --build
 
 # Run the unit tests (no database needed), from the repository root
@@ -74,8 +74,14 @@ pytest tests/integration -q
 cd web
 npm install
 npm run dev
-# Open http://localhost:3000
+# Open http://localhost:3000 — the port must equal APP_ORIGIN in the API's env,
+# or reset links point at a dead address. Pick one port and use it for both.
 ```
+
+Do not run `next build` while `next dev` is serving: both use `web/.next`, and the
+build replaces the chunks the dev server has already loaded (every page then 500s
+with `Cannot find module './…js'`, and static CSS 404s). Stop the dev server, build,
+then start.
 
 ## Environment variables
 
@@ -85,7 +91,7 @@ npm run dev
 | `DATABASE_URL_UNPOOLED` | Yes | Direct Postgres connection for migrations |
 | `ENV` | No | `development` by default; `production` on the Space |
 | `APP_ORIGIN` | Yes | Public web origin, used for reset links and the Google callback |
-| `API_ORIGIN` | Yes (web) | Backend origin the server-rendered report page reads from; defaults to `http://localhost:7860` |
+| `API_ORIGIN` | Yes (web) | Backend origin the Next server proxies to; defaults to `http://127.0.0.1:7260`. Use the IP, not `localhost`: on Windows `localhost` resolves to `::1` first and the compose port is IPv4, which turns every proxied call into a 500 |
 | `HF_TOKEN` | Deploy only | Hugging Face token; never read by the app |
 | `GOOGLE_CLIENT_ID` | Optional | Google OAuth client; sign-in is hidden when unset |
 | `GOOGLE_CLIENT_SECRET` | Optional | Google OAuth secret |
@@ -104,7 +110,7 @@ Copy `.env.example` to `.env` and fill in values. The app starts in template-fal
 | **M0 — Walking Skeleton** | ✅ Complete | One sample analysed through deployed stack, tests passing |
 | **M1 — Database** | ✅ Complete | 14 migrations, runner with advisory lock and checksum guard, repository, stored-payload read path, Docker + compose, 12 integration tests green. Deployed: live `/v1/health` reports `"database": true`, samples return pass/fail/warn, Neon holds 14 migrations |
 | **M2 — Accounts, Upload, Confirmation** | ✅ Complete | Signup/login/logout, sessions, `/v1/me`, Google OAuth, password reset, upload guards, confirmation card with refusal, sampling and XLSX sheet choice, streamed six-stage log with `ping`. 70 unit + 23 integration tests and 3 Playwright specs pass locally; deployed and verified through the Vercel rewrite on `fairlens-app.vercel.app` (streamed run, G1) |
-| **M3 — Verdict Interface** | ✅ Complete (local) | Report tokens and local fonts, the four lead blocks with verbatim copy, five check rows with intervals and methods, SVG selection-rate chart with a data-table alternative, affected groups and amplification, collapsed technical view incl. influence, server-resolved theme with no flash, motion with `prefers-reduced-motion`. The same tokens, type and `<html>`-level theme now cover the landing page, header, dropzone, confirmation card, run log and the auth screens. 82 unit + 13 Playwright specs green, `tsc` clean, build green; not yet deployed |
+| **M3 — Verdict Interface** | ✅ Complete (local) | `UI_UX.md` v3.3 built: Geist Sans/Mono self-hosted, neutral token set, a 56 px app bar with one action, a hero whose second column is the dropzone, the four lead blocks with verbatim copy, five check rows with intervals and methods, SVG selection-rate chart with a data-table alternative, affected groups and amplification, collapsed technical view incl. influence, server-resolved theme with no flash, motion with `prefers-reduced-motion`. The confirmation mapping panel, six-step run log and auth dialog use the same system. 22 unit + 17 Playwright specs green, `tsc` clean, build green; not yet deployed |
 | **M4 — Repairs** | ⏳ Pending | Three strategies, comparison, downloads |
 | **M5 — Report, Share, History, Account** | ⏳ Pending | Print, share links, history, account management |
 | **M6 — Narrative & Chat** | ⏳ Pending | AI narrative with guard, chat with citations |
