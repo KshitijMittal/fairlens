@@ -49,13 +49,18 @@ def test_duplicate_signup_is_409(client):
     assert res.status_code == 409
 
 
-def test_login_rejects_bad_credentials(client):
+def test_login_names_the_reason(client):
+    """v3.3: a missing account and a wrong password are different answers, so a
+    visitor knows whether to sign up. The reset endpoint still stays uniform."""
     me = _signup(client)
-    assert client.post("/v1/auth/login",
-                       json={"email": me["email"], "password": "wrong-password-1"}).status_code == 401
-    assert client.post("/v1/auth/login",
-                       json={"email": "nobody@example.com",
-                             "password": "wrong-password-1"}).status_code == 401
+    missing = client.post("/v1/auth/login",
+                          json={"email": "nobody@example.com", "password": "wrong-password-1"})
+    wrong = client.post("/v1/auth/login",
+                        json={"email": me["email"], "password": "wrong-password-1"})
+    assert missing.status_code == 404
+    assert "No account" in missing.json()["detail"]
+    assert wrong.status_code == 401
+    assert "Incorrect password" in wrong.json()["detail"]
 
 
 def test_logout_clears_the_session(client):

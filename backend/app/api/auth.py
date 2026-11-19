@@ -121,14 +121,18 @@ def login(request: Request, response: Response, data: LoginRequest) -> MeRespons
     _hit_rate_limit(repo, "login", data.email, 10)
 
     user = repo.get_user_by_email(data.email.lower())
-    if user and user["password_hash"]:
-        valid = verify_password(data.password, user["password_hash"])
-    else:
+    if user is None:
+        # Same work as a real check, so a missing address and a wrong password
+        # take the same time. The message names the reason (v3.3): signup already
+        # tells a visitor an address is taken, so hiding it here bought nothing.
         verify_password(data.password, dummy_hash())
-        valid = False
-
-    if not valid:
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
+        raise HTTPException(status_code=404,
+                            detail="No account uses this email. Create one first.")
+    if not user["password_hash"]:
+        raise HTTPException(status_code=409,
+                            detail="This account signs in with Google. Use Continue with Google.")
+    if not verify_password(data.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Incorrect password for this email.")
     return _login(request, response, repo, user)
 
 
