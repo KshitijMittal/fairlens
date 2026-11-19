@@ -1,22 +1,19 @@
 import { cookies } from "next/headers";
 import localFont from "next/font/local";
 
+import AuthProvider from "@/components/AuthProvider";
 import Header from "@/components/Header";
 import "./globals.css";
 
-const serif = localFont({
-  src: [{ path: "../fonts/instrument-serif-latin-400-normal.woff2", weight: "400",
-    style: "normal" }],
-  variable: "--font-serif",
+// Geist Sans is a variable font: one file covers 400, 500 and 600 (UI_UX 3.1).
+const sans = localFont({
+  src: [{ path: "../fonts/geist-sans-latin-var.woff2", weight: "100 900", style: "normal" }],
+  variable: "--font-sans",
   display: "swap",
 });
-const sans = localFont({
-  src: [
-    { path: "../fonts/ibm-plex-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/ibm-plex-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
-    { path: "../fonts/ibm-plex-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
-  ],
-  variable: "--font-sans",
+const mono = localFont({
+  src: [{ path: "../fonts/geist-mono-latin-400.woff2", weight: "400", style: "normal" }],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -29,10 +26,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const theme = cookies().get("theme")?.value;
   const resolved = theme === "light" || theme === "dark" ? theme : undefined;
   return (
-    <html lang="en" data-theme={resolved} className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en" data-theme={resolved} className={`${sans.variable} ${mono.variable}`}>
       <body>
-        <Header />
-        {children}
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

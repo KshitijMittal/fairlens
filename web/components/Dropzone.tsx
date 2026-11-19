@@ -7,6 +7,10 @@ interface DropzoneProps {
   acceptedTypes?: string[];
   maxSizeMB?: number;
   disabled?: boolean;
+  /** Signed out: the same surface, but it opens sign-in instead of the picker. */
+  locked?: boolean;
+  onLockedClick?: () => void;
+  hint?: string;
 }
 
 export default function Dropzone({
@@ -14,6 +18,9 @@ export default function Dropzone({
   acceptedTypes = [".csv", ".xlsx"],
   maxSizeMB = 50,
   disabled = false,
+  locked = false,
+  onLockedClick,
+  hint,
 }: DropzoneProps) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +39,10 @@ export default function Dropzone({
     e.stopPropagation();
     setDragActive(false);
     if (disabled) return;
+    if (locked) {
+      onLockedClick?.();
+      return;
+    }
 
     const file = e.dataTransfer.files[0];
     if (file) {
@@ -40,6 +51,10 @@ export default function Dropzone({
   }, [disabled]);
 
   const handleClick = () => {
+    if (locked) {
+      onLockedClick?.();
+      return;
+    }
     if (!disabled) {
       fileInputRef.current?.click();
     }
@@ -95,17 +110,20 @@ export default function Dropzone({
           }
         }}
       >
+        {!locked && (
         <input
           ref={fileInputRef}
           type="file"
           accept={inputAccept}
           onChange={handleFileChange}
+          aria-label="Choose a CSV or XLSX file"
           style={{ display: "none" }}
           disabled={disabled}
         />
+        )}
         <svg
-          width="40"
-          height="40"
+          width="24"
+          height="24"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -117,7 +135,7 @@ export default function Dropzone({
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
         <p className="title">Drop a CSV or XLSX file here, or click to browse</p>
-        <p className="hint">Maximum {maxSizeMB} MB</p>
+        <p className="hint">{hint ?? `Maximum ${maxSizeMB} MB`}</p>
       </div>
       {error && (
         <p className="notice" style={{ marginTop: 12 }}>{error}</p>

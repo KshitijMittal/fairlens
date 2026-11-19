@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+
 import PasswordField, { passwordProblems } from "@/components/PasswordField";
+import StatusMark from "@/components/StatusMark";
+import { apiError } from "@/lib/apiError";
 
 export default function ResetPage() {
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [done, setDone] = useState<"request" | "confirm" | null>(null);
+  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [changed, setChanged] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +32,7 @@ export default function ResetPage() {
       });
       if (!res.ok) {
         const payload = await res.json().catch(() => null);
-        setError(payload?.detail ?? `Request failed with ${res.status}`);
+        setError(apiError(payload, res.status));
         return false;
       }
       return true;
@@ -40,18 +44,39 @@ export default function ResetPage() {
     }
   }
 
-  if (done) {
+  if (sentTo || changed) {
     return (
-      <main className="page page--narrow">
-        <h1>{done === "request" ? "Check your email" : "Password changed"}</h1>
-        <p className="muted" style={{ margin: "16px 0 32px" }}>
-          {done === "request"
-            ? "If an account with that email exists, a reset link has been sent. The link expires in 30 minutes. Check your spam folder if it has not arrived within a minute."
-            : "Your password has been reset and every other session has been signed out."}
+      <main className="auth">
+        <div className="status" role="status" aria-live="polite">
+          <StatusMark state="ok" />
+          <h1>{changed ? "Password changed" : "Check your email"}</h1>
+          <p className="auth__sub">
+            {changed ? (
+              "Your password has been reset and every other session has been signed out."
+            ) : (
+              <>
+                If an account exists for <strong>{sentTo}</strong>, the link is on its way. It
+                expires in 30 minutes. If it has not arrived within a few minutes, check the spam
+                folder.
+              </>
+            )}
+          </p>
+        </div>
+        {!changed && (
+          <button
+            type="button"
+            className="btn btn--secondary btn--wide"
+            onClick={() => {
+              setSentTo(null);
+              setError(null);
+            }}
+          >
+            Change email
+          </button>
+        )}
+        <p className="auth-foot" style={{ textAlign: "center" }}>
+          <Link href="/login">Back to sign in</Link>
         </p>
-        <Link href="/login" className="btn btn--text">
-          Back to sign in
-        </Link>
       </main>
     );
   }
@@ -59,9 +84,9 @@ export default function ResetPage() {
   const confirming = Boolean(token);
 
   return (
-    <main className="page page--narrow">
+    <main className="auth">
       <h1>{confirming ? "Choose a new password" : "Reset your password"}</h1>
-      <p className="muted" style={{ margin: "8px 0 32px" }}>
+      <p className="auth__sub">
         {confirming
           ? "Choose a new password. The rules are shown under the field."
           : "Enter your email address and we'll send you a link to reset your password."}
@@ -77,7 +102,9 @@ export default function ResetPage() {
           const ok = confirming
             ? await post("/api/v1/auth/reset/confirm", { token, password })
             : await post("/api/v1/auth/reset/request", { email });
-          if (ok) setDone(confirming ? "confirm" : "request");
+          if (!ok) return;
+          if (confirming) setChanged(true);
+          else setSentTo(email);
         }}
         className="form"
       >
@@ -104,7 +131,12 @@ export default function ResetPage() {
           </div>
         )}
 
-        {error && <p className="notice">{error}</p>}
+        {error && (
+          <p className="notice notice--mark" role="alert">
+            <StatusMark state="error" size={20} />
+            <span>{error}</span>
+          </p>
+        )}
 
         <button type="submit" disabled={busy} className="btn btn--primary btn--wide">
           {busy ? "Working…" : confirming ? "Set new password" : "Send reset link"}

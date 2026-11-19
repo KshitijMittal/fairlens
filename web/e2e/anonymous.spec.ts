@@ -7,8 +7,12 @@ test("a signed-out dropzone issues no upload request", async ({ page }) => {
   });
 
   await page.goto("/");
-  await expect(page.getByText("Analyze your own file")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Know what your data teaches/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Drop a CSV or XLSX file here/ })).toBeVisible();
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "create an account" })).toBeVisible();
+
+  // Signed out, the dropzone is the sign-in door; it must not pick a file.
+  await page.getByRole("button", { name: /Drop a CSV or XLSX file here/ }).click();
+  await expect(page.locator("dialog.auth-dialog")).toBeVisible();
   expect(uploads).toBe(0);
 });

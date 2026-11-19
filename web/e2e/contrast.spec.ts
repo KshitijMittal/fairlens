@@ -12,9 +12,15 @@ async function tokenPairs(context: BrowserContext, page: import("@playwright/tes
   return page.locator(".report").evaluate((node, states) => {
     const style = getComputedStyle(node);
     const token = (name: string) => style.getPropertyValue(`--${name}`).trim();
-    return { paper: token("paper"), ink: token("ink"), states: states.map((state) => ({
-      state, foreground: token(state), tint: token(`${state}-tint`),
-    })) };
+    return {
+      canvas: token("canvas"),
+      ink: token("ink"),
+      muted: token("ink-muted"),
+      accent: token("accent"),
+      states: states.map((state) => ({
+        state, foreground: token(state), tint: token(`${state}-tint`),
+      })),
+    };
   }, STATES);
 }
 
@@ -38,16 +44,21 @@ async function ratio(page: import("@playwright/test").Page, background: string,
 }
 
 for (const theme of ["light", "dark"] as const) {
-  test(`${theme}: eight verdict pairs and ink on paper reach 4.5:1`, async ({ page, context }) => {
+  test(`${theme}: verdict pairs and body text reach 4.5:1`, async ({ page, context }) => {
     const result = await createRun(page, "pass");
     const tokens = await tokenPairs(context, page, theme, result.id);
 
     for (const state of tokens.states) {
       expect(await ratio(page, state.tint, state.foreground), `${state.state} on its tint`)
         .toBeGreaterThanOrEqual(4.5);
-      expect(await ratio(page, tokens.paper, state.foreground), `${state.state} on paper`)
+      expect(await ratio(page, tokens.canvas, state.foreground), `${state.state} on canvas`)
         .toBeGreaterThanOrEqual(4.5);
     }
-    expect(await ratio(page, tokens.paper, tokens.ink), "ink on paper").toBeGreaterThanOrEqual(4.5);
+    expect(await ratio(page, tokens.canvas, tokens.ink), "ink on canvas")
+      .toBeGreaterThanOrEqual(4.5);
+    expect(await ratio(page, tokens.canvas, tokens.muted), "ink-muted on canvas")
+      .toBeGreaterThanOrEqual(4.5);
+    expect(await ratio(page, tokens.canvas, tokens.accent), "accent on canvas")
+      .toBeGreaterThanOrEqual(4.5);
   });
 }

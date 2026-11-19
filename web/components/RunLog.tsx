@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { apiError } from "@/lib/apiError";
+
 interface RunLogProps {
   file: File;
   confirmations: {
@@ -16,14 +18,15 @@ interface RunLogProps {
   onCancel: () => void;
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  parsing: "Reading your file",
-  cleaning: "Cleaning and encoding",
-  training: "Training the stand-in model",
-  measuring: "Measuring fairness",
-  influence: "Computing feature influence",
-  saving: "Saving results",
-};
+// The backend's six stages, in order. Labels are printed unchanged (UI_UX 7.4).
+const STAGES: [string, string][] = [
+  ["parsing", "Reading your file"],
+  ["cleaning", "Cleaning and encoding"],
+  ["training", "Training the stand-in model"],
+  ["measuring", "Measuring fairness"],
+  ["influence", "Computing feature influence"],
+  ["saving", "Saving results"],
+];
 
 export default function RunLog({
   file,
@@ -34,7 +37,6 @@ export default function RunLog({
 }: RunLogProps) {
   const [frames, setFrames] = useState<Array<{ event: string; [key: string]: any }>>([]);
   const [aborted, setAborted] = useState(false);
-  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const abortedRef = useRef(false);
   const callbacks = useRef({ onComplete, onError });
@@ -59,14 +61,13 @@ export default function RunLog({
 
         if (!res.ok) {
           const body = await res.json().catch(() => null);
-          throw new Error(body?.detail ?? `Request failed with ${res.status}`);
+          throw new Error(apiError(body, res.status));
         }
 
         const reader = res.body?.getReader();
         if (!reader) {
           throw new Error("No response body");
         }
-        readerRef.current = reader;
 
         const decoder = new TextDecoder();
         let buffer = "";
@@ -96,7 +97,8 @@ export default function RunLog({
               return;
             }
             if (frame.event === "error") {
-              callbacks.current.onError(frame.problem?.detail ?? "Analysis failed");
+              const detail = frame.problem?.detail;
+              callbacks.current.onError(typeof detail === "string" ? detail : "Analysis failed");
               return;
             }
           }
@@ -128,52 +130,52 @@ export default function RunLog({
     onCancel();
   };
 
-  const finished = frames.some((f) => f.event === "result");
+  const finished = frames.some((frame) => frame.event === "result");
+  // Stage frames arrive when a stage starts, so the last one is current.
+  const current = frames.reduce(
+    (highest, frame) => (frame.event === "stage" ? frame.index as number : highest), 0);
 
   return (
-    <section className="panel">
-      <div className="panel__head">
+    <section className="stepper">
+      <div className="stepper__head">
         <h2>Running analysis</h2>
-        <button
-          onClick={handleCancel}
-          disabled={finished || aborted}
-          className="btn btn--destructive"
-        >
-          Cancel
-        </button>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+          <p className="label">{current === 0 ? "Preparing" : `${current} of ${STAGES.length}`}</p>
+          <button
+            onClick={handleCancel}
+            disabled={finished || aborted}
+            className="btn btn--destructive"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
 
-      <div className="log" aria-live="polite">
-        {frames.length === 0 && <p className="muted">Preparing…</p>}
+      <div className="stepper__track" aria-hidden="true">
+        <div
+          className="stepper__fill"
+          style={{ width: `${(Math.max(current - 1, 0) / STAGES.length) * 100}%` }}
+        />
+      </div>
 
-        {frames.map((frame, i) => {
-          if (frame.event === "stage") {
-            const stageKey = frame.stage as string;
-            return (
-              <div key={i} className="log__row">
-                <span
-                  className={`log__dot${stageKey === "saving" ? " log__dot--done" : ""}`}
-                  aria-hidden="true"
-                />
-                <div>
-                  <p className="log__label">{frame.label}</p>
-                  <p className="log__meta">
-                    Stage {frame.index} of {frame.total}
-                  </p>
-                </div>
-              </div>
-            );
-          }
-          if (frame.event === "ping") {
-            return (
-              <div key={i} className="log__row log__row--ping">
-                Waiting for stage to complete…
-              </div>
-            );
-          }
-          return null;
+      <ol className="stepper__list" aria-live="polite">
+        {STAGES.map(([key, label], index) => {
+          const step = index + 1;
+          const status = step < current ? "done" : step === current ? "current" : "pending";
+          return (
+            <li
+              key={key}
+              className={`step-row step-row--${status}`}
+              aria-current={status === "current" ? "step" : undefined}
+            >
+              <span className="step-row__glyph" aria-hidden="true">
+                {status === "done" ? "✓" : status === "current" ? "●" : "○"}
+              </span>
+              {label}
+            </li>
+          );
         })}
-      </div>
+      </ol>
     </section>
   );
 }

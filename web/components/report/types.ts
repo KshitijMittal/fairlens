@@ -112,13 +112,13 @@ export function thresholdText(check: Check): string {
   const t = check.threshold;
   const n = (key: string) => Number(t[key]);
   if (check.code === "C5") {
-    return `n ≥ ${n("min_group_rows")} · CI half-width ≤ ${fixed(n("max_rate_half_width"), 2)}`;
+    return `n ≥ ${n("min_group_rows")}` + "\n" + `CI half-width ≤ ${fixed(n("max_rate_half_width"), 2)}`;
   }
   if (check.code === "C3") {
-    return `Warn ≥ ${fixed(n("warn_at"), 2)} · Fail ≥ ${fixed(n("fail_at"), 2)}`;
+    return `Warn ≥ ${fixed(n("warn_at"), 2)}` + "\n" + `Fail ≥ ${fixed(n("fail_at"), 2)}`;
   }
   if (t.direction === "below") {
-    return `Pass ≤ ${fixed(n("pass_at"), 2)} · Fail ≥ ${fixed(n("fail_at"), 2)}`;
+    return `Pass ≤ ${fixed(n("pass_at"), 2)}` + "\n" + `Fail ≥ ${fixed(n("fail_at"), 2)}`;
   }
-  return `Pass ≥ ${fixed(n("pass_at"), 2)} · Warn ≥ ${fixed(n("warn_at"), 2)}`;
+  return `Pass ≥ ${fixed(n("pass_at"), 2)}` + "\n" + `Warn ≥ ${fixed(n("warn_at"), 2)}`;
 }

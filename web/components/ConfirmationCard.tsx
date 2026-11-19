@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 interface ConfirmationCardProps {
+  filename: string;
   card: {
     outcome: {
       column: string;
@@ -41,7 +42,10 @@ interface ConfirmationCardProps {
   onCancel: () => void;
 }
 
+// The mapping panel is always editable; the old read/edit toggle added a mode
+// for no reason (UI_UX 6.4).
 export default function ConfirmationCard({
+  filename,
   card,
   metadata,
   onConfirm,
@@ -49,7 +53,6 @@ export default function ConfirmationCard({
   onCancel,
 }: ConfirmationCardProps) {
   const sheetNames = metadata.parse?.sheet_names ?? [];
-  const [editing, setEditing] = useState(false);
   const [samplingChoice, setSamplingChoice] = useState<"all" | "sample" | null>(
     metadata.rows <= 50000 ? "all" : null
   );
@@ -74,21 +77,58 @@ export default function ConfirmationCard({
     });
   };
 
-  const handleChange = () => {
-    setEditing(true);
-  };
+  return (
+    <div className="panel confirm">
+      <div className="confirm__head">
+        <h2>Confirm what this data means</h2>
+      </div>
 
-  if (editing) {
-    return (
-      <div className="panel">
-        <div className="panel__head">
-          <h2>Review &amp; change</h2>
-          <button onClick={() => setEditing(false)} className="btn btn--secondary">
-            Done
-          </button>
+      <div className="confirm__grid">
+        <div className="confirm__facts">
+          <p className="confirm__file">{filename}</p>
+          <p className="small muted">
+            {metadata.rows.toLocaleString("en-US")} rows · {metadata.columns} columns
+          </p>
+          <p className="small muted">
+            {card.groups.values.length} groups ·{" "}
+            {card.factor_columns.length === 1
+              ? "1 factor column"
+              : `${card.factor_columns.length} factor columns`}
+          </p>
+
+          {sheetNames.length > 1 && (
+            <div className="field" style={{ marginTop: 16 }}>
+              <label htmlFor="confirm-sheet">Sheet</label>
+              <select
+                id="confirm-sheet"
+                className="select"
+                value={confirmations.sheet ?? sheetNames[0]}
+                onChange={(e) => {
+                  setConfirmations({ ...confirmations, sheet: e.target.value });
+                  onSheetChange?.(e.target.value);
+                }}
+              >
+                {sheetNames.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+              <p className="small faint">Choosing another sheet reads it again first.</p>
+            </div>
+          )}
+
+          <details style={{ marginTop: 16 }}>
+            <summary className="small">Show groups</summary>
+            <ul className="small muted" style={{ margin: "8px 0 0", paddingLeft: 20 }}>
+              {card.groups.values.map((group) => (
+                <li key={group.label}>
+                  {group.label} — {group.n.toLocaleString("en-US")} rows
+                </li>
+              ))}
+            </ul>
+          </details>
         </div>
 
-        <div className="form">
+        <div className="confirm__task">
           <div className="field">
             <label htmlFor="confirm-outcome">Outcome column</label>
             <select
@@ -112,10 +152,16 @@ export default function ConfirmationCard({
               value={confirmations.positive}
               onChange={(e) => setConfirmations({ ...confirmations, positive: e.target.value })}
             />
+            {confirmations.positive === card.outcome.positive_value && (
+              <p className="small faint">
+                {card.outcome.positive_count.toLocaleString("en-US")} of{" "}
+                {card.outcome.total_rows.toLocaleString("en-US")} rows are positive
+              </p>
+            )}
           </div>
 
           <div className="field">
-            <label htmlFor="confirm-group">Demographic (group) column</label>
+            <label htmlFor="confirm-group">Group column</label>
             <select
               id="confirm-group"
               className="select"
@@ -129,178 +175,71 @@ export default function ConfirmationCard({
           </div>
 
           {card.age_banding.available && (
-            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+            <label className="small" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input
                 type="checkbox"
                 checked={confirmations.age_banding}
                 onChange={(e) =>
                   setConfirmations({ ...confirmations, age_banding: e.target.checked })}
               />
-              <span style={{ fontSize: 15 }}>Group ages into 10-year bands</span>
+              Group ages into 10-year bands
             </label>
           )}
-
-          <div className="form-row" style={{ marginTop: 8 }}>
-            <button
-              onClick={handleConfirm}
-              disabled={blocked || needsSamplingChoice}
-              className="btn btn--primary"
-              style={{ flex: 1 }}
-            >
-              Run analysis
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="btn btn--secondary"
-              style={{ flex: 1 }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="panel">
-      <div className="panel__head">
-        <h2>Confirm what this data means</h2>
-        <button onClick={handleChange} className="btn btn--text">
-          Change
-        </button>
-      </div>
-
-      <div className="tiles">
-        <div className="tile">
-          <p className="eyebrow">Outcome column</p>
-          <p className="value">{confirmations.outcome}</p>
-          <p className="muted" style={{ marginTop: 4, fontSize: 15, lineHeight: "22px" }}>
-            Positive: <strong>{confirmations.positive}</strong>
-            {confirmations.positive === card.outcome.positive_value
-              ? ` (${card.outcome.positive_count} of ${card.outcome.total_rows})`
-              : ""}
-          </p>
-        </div>
-
-        <div className="tile">
-          <p className="eyebrow">Demographic column</p>
-          <p className="value">{confirmations.group}</p>
-          <p className="muted" style={{ marginTop: 4, fontSize: 15, lineHeight: "22px" }}>
-            {card.groups.values.length} groups
-          </p>
-          <details style={{ marginTop: 8 }}>
-            <summary style={{ fontSize: 15 }}>Show groups</summary>
-            <ul
-              className="muted"
-              style={{ margin: "8px 0 0", paddingLeft: 20, fontSize: 15, lineHeight: "22px" }}
-            >
-              {card.groups.values.map((g) => (
-                <li key={g.label}>{g.label} — {g.n.toLocaleString()} rows</li>
-              ))}
-            </ul>
-          </details>
-        </div>
-
-        <div className="tile">
-          <p className="eyebrow">Age banding</p>
-          <p className="value">
-            {confirmations.age_banding
-              ? "Applied (10-year bands)"
-              : card.age_banding.available
-                ? "Available, not applied"
-                : "Not available"}
-          </p>
-        </div>
-
-        <div className="tile">
-          <p className="eyebrow">Factor columns</p>
-          <p className="value">
-            {card.factor_columns.length > 0 ? card.factor_columns.join(", ") : "None"}
-          </p>
         </div>
       </div>
 
       {card.warnings.length > 0 && (
-        <div className="notice notice--warn" style={{ marginTop: 24 }}>
-          <p style={{ margin: "0 0 8px", fontWeight: 500 }}>Warnings</p>
-          <ul style={{ margin: 0, paddingLeft: 20 }}>
-            {card.warnings.map((w, i) => (
-              <li key={i}>{w.message}</li>
+        <div className="notice notice--warn confirm__block">
+          <p style={{ fontWeight: 500 }}>Warnings</p>
+          <ul>
+            {card.warnings.map((warning, index) => (
+              <li key={index}>{warning.message}</li>
             ))}
           </ul>
-        </div>
-      )}
-
-      <p className="muted" style={{ marginTop: 24, fontSize: 15, lineHeight: "22px" }}>
-        {metadata.rows.toLocaleString()} rows × {metadata.columns} columns
-      </p>
-
-      {/* A multi-sheet workbook names its sheets; the first is preselected (PRD F1). */}
-      {sheetNames.length > 1 && (
-        <div className="field" style={{ marginTop: 24 }}>
-          <label htmlFor="confirm-sheet">Sheet</label>
-          <select
-            id="confirm-sheet"
-            className="select"
-            value={confirmations.sheet ?? sheetNames[0]}
-            onChange={(e) => {
-              setConfirmations({ ...confirmations, sheet: e.target.value });
-              onSheetChange?.(e.target.value);
-            }}
-          >
-            {sheetNames.map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
-          <p className="faint" style={{ margin: "6px 0 0", fontSize: 13, lineHeight: "18px" }}>
-            Choosing another sheet reads it again before the card is rebuilt.
-          </p>
         </div>
       )}
 
       {/* Sampling is an explicit choice above 50,000 rows (F1-AC3). */}
       {metadata.rows > 50000 && (
         <fieldset
-          style={{ marginTop: 24, padding: 16, border: "1px solid var(--hairline)", borderRadius: 2 }}
+          className="confirm__block"
+          style={{ border: "1px solid var(--hairline)", borderRadius: 8, padding: 16 }}
         >
           <legend className="field-label" style={{ padding: "0 6px" }}>
             Rows to analyse
           </legend>
-          <p style={{ margin: "0 0 8px" }}>
-            This file has {metadata.rows.toLocaleString()} rows. Choose what to analyse:
+          <p className="small muted">
+            This file has {metadata.rows.toLocaleString("en-US")} rows. Choose what to analyse:
           </p>
-          <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6,
-            cursor: "pointer" }}>
+          <label className="small" style={{ display: "flex", gap: 8, marginTop: 8 }}>
             <input type="radio" name="sampling" checked={samplingChoice === "sample"}
                    onChange={() => setSamplingChoice("sample")} />
-            <span style={{ fontSize: 15 }}>A seeded random sample of 50,000 rows (faster)</span>
+            A seeded random sample of 50,000 rows (faster)
           </label>
-          <label style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}>
+          <label className="small" style={{ display: "flex", gap: 8, marginTop: 4 }}>
             <input type="radio" name="sampling" checked={samplingChoice === "all"}
                    onChange={() => setSamplingChoice("all")} />
-            <span style={{ fontSize: 15 }}>All {metadata.rows.toLocaleString()} rows</span>
+            All {metadata.rows.toLocaleString("en-US")} rows
           </label>
         </fieldset>
       )}
 
       {blocked && (
-        <p className="notice" style={{ marginTop: 24 }}>
+        <p className="notice confirm__block">
           This demographic column has only one value, so a between-group comparison is not
-          possible. Change the demographic column above to continue.
+          possible. Change the demographic column to continue.
         </p>
       )}
 
-      <div className="form-row" style={{ marginTop: 24 }}>
+      <div className="confirm__actions">
         <button
           onClick={handleConfirm}
           disabled={blocked || needsSamplingChoice}
           className="btn btn--primary"
-          style={{ flex: 1 }}
         >
           Run analysis
         </button>
-        <button onClick={onCancel} className="btn btn--secondary" style={{ flex: 1 }}>
+        <button onClick={onCancel} className="btn btn--secondary">
           Cancel
         </button>
       </div>

@@ -16,7 +16,7 @@ test("an explicit dark cookie is in the first byte of HTML", async ({ page, cont
 
   await page.goto(`/analysis/${result.id}`);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  expect(await background(page)).toBe("rgb(20, 18, 15)");
+  expect(await background(page)).toBe("rgb(9, 9, 11)");
 });
 
 test.describe("without JavaScript", () => {
@@ -27,6 +27,6 @@ test.describe("without JavaScript", () => {
     await page.context().addCookies([{ name: "theme", value: "light", url: ORIGIN }]);
     await page.goto(`/analysis/${result.id}`);
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-    expect(await background(page)).toBe("rgb(250, 249, 246)");
+    expect(await background(page)).toBe("rgb(250, 250, 250)");
   });
 });

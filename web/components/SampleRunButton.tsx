@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { apiError } from "@/lib/apiError";
+
 export default function SampleRunButton({ slug, label }: { slug: string; label: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -15,7 +17,7 @@ export default function SampleRunButton({ slug, label }: { slug: string; label: 
       const res = await fetch(`/api/v1/dev/sample/${slug}`, { method: "POST" });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        setError(body?.detail ?? `Request failed with ${res.status}`);
+        setError(apiError(body, res.status));
         return;
       }
       const payload = await res.json();

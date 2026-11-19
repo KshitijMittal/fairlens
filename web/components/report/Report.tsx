@@ -4,22 +4,56 @@ import { type Analysis, type Check, type GroupRow, STATE, displayGroup, fixed, i
   thresholdText } from "./types";
 import Technical from "./Technical";
 
-const MEASURE = "66ch";
+const SECTIONS = [
+  { id: "verdict", title: "The verdict" },
+  { id: "checks", title: "The checks" },
+  { id: "affected", title: "Who is affected" },
+  { id: "meaning", title: "What this means" },
+  { id: "method", title: "The method" },
+];
 
-function Section({ number, title, children }: {
-  number: string;
+const pad = (index: number) => String(index + 1).padStart(2, "0");
+
+function Section({ id, index, title, children }: {
+  id: string;
+  index: number;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <section style={{ marginTop: 96 }}>
-      <p style={{ margin: 0, fontSize: 13, lineHeight: "18px", letterSpacing: "0.06em",
-        textTransform: "uppercase", fontWeight: 500, color: "var(--ink-faint)" }}>
-        {number}
-      </p>
-      <h2 style={{ marginTop: 8, marginBottom: 32 }}>{title}</h2>
+    <section id={id} className="section-anchor" style={{ "--index": index } as CSSProperties}>
+      <p className="label">{pad(index)}</p>
+      <h2 style={{ marginTop: 8, marginBottom: 16 }}>{title}</h2>
       {children}
     </section>
+  );
+}
+
+function Kpi({ result }: { result: Analysis }) {
+  const ratios = result.checks
+    .filter((check) => (check.code === "C1" || check.code === "C2") && check.value !== null)
+    .sort((a, b) => (a.value as number) - (b.value as number));
+  const lowest = ratios[0];
+  const figures = [
+    lowest && { value: fixed(lowest.value as number), label: `Lowest ratio · ${lowest.code}` },
+    {
+      value: `${Math.round(result.amplification.model_gap * 100)} pts`,
+      label: "Model gap",
+    },
+    { value: result.dataset.rows.toLocaleString("en-US"), label: "Rows analysed" },
+  ].filter(Boolean) as { value: string; label: string }[];
+
+  return (
+    <div className="kpi">
+      {figures.map((figure) => (
+        <div key={figure.label}>
+          <p className="kpi__value">{figure.value}</p>
+          <p className="kpi__label" style={{ color: `var(--${result.verdict})` }}>
+            {figure.label}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -29,26 +63,26 @@ function Verdict({ result }: { result: Analysis }) {
   const unjudged = result.checks.filter((check) => check.state === "inconclusive");
   return (
     <section
-      className="verdict-banner"
+      className="verdict"
       data-testid="verdict-banner"
       data-verdict={state}
-      style={{ background: `var(--${state}-tint)`, borderRadius: 2, padding: 32, marginTop: 24 }}
+      style={{ background: `var(--${state}-tint)` }}
     >
-      <p style={{ margin: 0, fontSize: 13, lineHeight: "18px", letterSpacing: "0.06em",
-        textTransform: "uppercase", fontWeight: 500, color: `var(--${state})` }}>
-        <span aria-hidden="true">{stateWord.glyph}</span> {stateWord.word}
+      <p className="verdict__head">
+        <span className={`chip chip--${state}`}>
+          <span aria-hidden="true">{stateWord.glyph}</span> {stateWord.word}
+        </span>
       </p>
-      <h1 data-testid="verdict-headline" style={{ margin: "12px 0 16px", color: "var(--ink)",
-        maxWidth: "22ch" }}>
+      <h1 className="display" data-testid="verdict-headline">
         {headline}
       </h1>
-      <p style={{ margin: 0, maxWidth: MEASURE }}>{consequence}</p>
+      <p className="verdict__consequence">{consequence}</p>
       {state === "inconclusive" && unjudged.length > 0 && (
-        <p data-testid="unjudged-checks" style={{ margin: "16px 0 0", fontSize: 15,
-          lineHeight: "22px", color: "var(--ink-muted)" }}>
+        <p className="verdict__unjudged small" data-testid="unjudged-checks">
           Could not judge: {unjudged.map((check) => `${check.code} ${check.name}`).join(", ")}.
         </p>
       )}
+      <Kpi result={result} />
     </section>
   );
 }
@@ -63,7 +97,6 @@ function Chart({ result }: { result: Analysis }) {
     ? lowest.label
     : null;
 
-  const labelWidth = 150;
   const plotX = 170;
   const plotWidth = 560;
   const block = 54;
@@ -103,7 +136,7 @@ function Chart({ result }: { result: Analysis }) {
             <g key={row.label}>
               {lines.map((line, lineIndex) => (
                 <text key={line} x={0} y={y + 14 + lineIndex * 19}
-                  style={{ fill: "var(--ink)", fontSize: 15 }}>
+                  style={{ fill: "var(--ink)", fontSize: 13 }}>
                   {line}
                 </text>
               ))}
@@ -127,12 +160,12 @@ function Chart({ result }: { result: Analysis }) {
         })}
       </svg>
       </div>
-      <p style={{ margin: "16px 0 0", fontSize: 15, lineHeight: "22px", color: "var(--ink-muted)" }}>
+      <figcaption className="chart-note">
         Filled bar: the decisions recorded in your data. Outlined bar: the model. The line through
         each bar is its 95% interval. Axis starts at zero.
-      </p>
+      </figcaption>
       <details style={{ marginTop: 16 }}>
-        <summary style={{ fontSize: 17 }}>Data table</summary>
+        <summary>Data table</summary>
         <div style={{ overflowX: "auto", marginTop: 16 }}>
           <table>
             <caption>Selection rate by group, recorded and model</caption>
@@ -150,10 +183,7 @@ function Chart({ result }: { result: Analysis }) {
                 const modelled = model.get(row.label);
                 return (
                   <tr key={row.label}>
-                    <th scope="row" style={{ textTransform: "none", letterSpacing: 0,
-                      fontSize: 15, color: "var(--ink)", fontWeight: 400 }}>
-                      {displayGroup(row.label)}
-                    </th>
+                    <th scope="row">{displayGroup(row.label)}</th>
                     <td className="numeric">{row.n}</td>
                     <td className="numeric">{fixed(row.selection_rate)}</td>
                     <td className="numeric">{interval(row.interval)}</td>
@@ -176,9 +206,8 @@ function Bar({ rate, y, kind, delay }: { rate: number; y: number; kind: "recorde
     <rect className="chart-bar" x={170} y={y} width={width} height={14}
       style={{
         fill: kind === "recorded" ? "var(--ink)" : "none",
-        fillOpacity: kind === "recorded" ? 0.85 : 1,
-        stroke: kind === "model" ? "var(--accent)" : "none",
-        strokeWidth: kind === "model" ? 2 : 0,
+        stroke: kind === "model" ? "var(--ink-faint)" : "none",
+        strokeWidth: kind === "model" ? 1.5 : 0,
         animationDelay: `${delay * 60}ms`,
       }} />
   );
@@ -190,11 +219,11 @@ function Interval({ row, y, x, kind }: { row: GroupRow; y: number; x: (rate: num
   const [low, high] = row.interval;
   const centre = y + 7;
   return (
-    <g style={{ stroke: "var(--ink-muted)", strokeWidth: 2 }}>
+    <g style={{ stroke: "var(--ink-muted)", strokeWidth: 1 }}>
       <line x1={x(low)} x2={x(high)} y1={centre} y2={centre}
         strokeDasharray={kind === "model" ? "3 3" : undefined} />
-      <line x1={x(low)} x2={x(low)} y1={centre - 5} y2={centre + 5} />
-      <line x1={x(high)} x2={x(high)} y1={centre - 5} y2={centre + 5} />
+      <line x1={x(low)} x2={x(low)} y1={centre - 6} y2={centre + 6} />
+      <line x1={x(high)} x2={x(high)} y1={centre - 6} y2={centre + 6} />
     </g>
   );
 }
@@ -216,140 +245,138 @@ function wrap(text: string, width: number): string[] {
 function Checks({ result }: { result: Analysis }) {
   const counts = result.confirmation.groups.values;
   return (
-    <div>
-      {result.checks.map((check, index) => (
-        <CheckRow key={check.code} check={check} index={index} counts={counts} />
+    <div className="checks">
+      {result.checks.map((check) => (
+        <CheckRow key={check.code} check={check} counts={counts} />
       ))}
     </div>
   );
 }
 
-function CheckRow({ check, index, counts }: {
+function CheckRow({ check, counts }: {
   check: Check;
-  index: number;
   counts: { label: string; n: number }[];
 }) {
   const stateWord = STATE[check.state];
   return (
-    <article
-      data-testid={`check-${check.code}`}
-      data-state={check.state}
-      className="check-row"
-      style={{ "--index": index, borderTop: "1px solid var(--hairline)", padding: "24px 0" } as CSSProperties}
-    >
-      <div className="check-row__body">
-        <div>
-          <p style={{ margin: 0, fontSize: 13, lineHeight: "18px", letterSpacing: "0.06em",
-            textTransform: "uppercase", fontWeight: 500, color: "var(--ink-faint)" }}>
-            {check.code}{check.core ? " · core" : ""}
-          </p>
-          <p style={{ margin: "4px 0 8px", fontWeight: 500 }}>{check.name}</p>
-          <p style={{ margin: 0, color: "var(--ink-muted)", maxWidth: "52ch" }}>{check.sentence}</p>
-        </div>
-        <div className="check-row__figure">
-          <p style={{ margin: 0, fontSize: 13, lineHeight: "18px", letterSpacing: "0.06em",
-            textTransform: "uppercase", fontWeight: 500, color: `var(--${check.state})` }}>
-            <span aria-hidden="true">{stateWord.glyph}</span> {stateWord.word}
-          </p>
-          {check.value !== null && (
-            <p data-testid={`figure-${check.code}`} className="serif"
-              style={{ margin: "8px 0 0", fontSize: 22, lineHeight: "26px" }}>
-              {fixed(check.value)}
-            </p>
-          )}
-          {check.interval && (
-            <p style={{ margin: "4px 0 0", fontSize: 15, lineHeight: "22px",
-              color: "var(--ink-muted)" }}>
-              95% CI {interval(check.interval)}
-            </p>
-          )}
-          <p data-testid={`threshold-${check.code}`} style={{ margin: "8px 0 0", fontSize: 15,
-            lineHeight: "22px", color: "var(--ink-faint)" }}>
-            {thresholdText(check)}
-          </p>
-        </div>
-      </div>
-      <details open={check.state === "inconclusive"} style={{ marginTop: 16 }}>
-        <summary style={{ fontSize: 15 }}>Method and group counts</summary>
-        <div style={{ marginTop: 8, fontSize: 15, lineHeight: "22px", color: "var(--ink-muted)",
-          maxWidth: "66ch" }}>
-          <p style={{ margin: 0 }}>{check.method ?? "No method recorded for this run."}</p>
-          <p style={{ margin: "4px 0 0" }}>
-            {counts.map((row) => `${displayGroup(row.label)} ${row.n} rows`).join(" · ")}
-          </p>
+    <article className="check" data-testid={`check-${check.code}`} data-state={check.state}>
+      {/* Inconclusive rows never collapse (PRD F4-AC3). */}
+      <details open={check.state === "inconclusive"}>
+        <summary>
+          <span className="check__code">
+            {check.code}
+            {check.core && <span className="check__core">core</span>}
+          </span>
+          <span>
+            <span className="check__name">{check.name}</span>
+            <span className="check__meaning">{check.sentence}</span>
+          </span>
+          <span>
+            {check.value !== null && (
+              <span className="check__figure" data-testid={`figure-${check.code}`}>
+                {fixed(check.value)}
+              </span>
+            )}
+            {check.interval && (
+              <span className="check__interval">95% CI {interval(check.interval)}</span>
+            )}
+          </span>
+          <span className="check__state">
+            <span className={`chip chip--${check.state}`}>
+              <span aria-hidden="true">{stateWord.glyph}</span> {stateWord.word}
+            </span>
+            <span className="check__threshold" data-testid={`threshold-${check.code}`}>
+              {thresholdText(check)}
+            </span>
+          </span>
+        </summary>
+        <div className="check__detail">
+          <p>{check.method ?? "No method recorded for this run."}</p>
+          <p>{counts.map((row) => `${displayGroup(row.label)} ${row.n} rows`).join(" · ")}</p>
         </div>
       </details>
     </article>
   );
 }
 
-function Affected({ result }: { result: Analysis }) {
+function Meaning({ result }: { result: Analysis }) {
   return (
-    <>
-      {result.affected.length > 0 && (
-        <div style={{ marginTop: 32 }}>
-          {result.affected.map((row) => (
-            <p key={row.group} style={{ margin: "0 0 8px", maxWidth: MEASURE }}>
-              {row.sentence}
-            </p>
-          ))}
-        </div>
-      )}
-      <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--hairline)" }}>
-        <p className="serif" style={{ margin: 0, fontSize: 21, lineHeight: "32px",
-          maxWidth: MEASURE }}>
-          {result.amplification.sentence}
+    <div className="meaning">
+      <p className="meaning__lead">{result.amplification.sentence}</p>
+      <p className="meaning__detail">{result.amplification.detail}</p>
+      {result.affected.map((row) => (
+        <p key={row.group} className="meaning__detail" style={{ marginTop: 8 }}>
+          {row.sentence}
         </p>
-        <p style={{ margin: "8px 0 0", maxWidth: MEASURE }}>{result.amplification.detail}</p>
+      ))}
+      <div className="meaning__body">
+        <p className="muted">{result.narrative.body}</p>
       </div>
-    </>
+    </div>
   );
 }
 
 export default function Report({ result }: { result: Analysis }) {
+  const created = new Date(result.created_at).toISOString().slice(0, 10);
   return (
-    <main style={{ maxWidth: "78rem", margin: "0 auto", padding: "0 clamp(24px, 5vw, 64px) 96px" }}>
-      <p style={{ margin: "32px 0 0", fontSize: 15, lineHeight: "22px", color: "var(--ink-muted)" }}>
-        {result.dataset.name} · {result.dataset.rows.toLocaleString("en-US")} rows ·{" "}
-        {new Date(result.created_at).toISOString().slice(0, 10)}
-      </p>
-
-      <p style={{ margin: 0, fontSize: 13, lineHeight: "18px", letterSpacing: "0.06em",
-        textTransform: "uppercase", fontWeight: 500, color: "var(--ink-faint)" }}>
-        01
-      </p>
-      <h2 style={{ marginTop: 8, marginBottom: 32 }}>The verdict</h2>
-      <Verdict result={result} />
-      <p style={{ margin: "16px 0 0", fontSize: 15, lineHeight: "22px", color: "var(--ink-muted)",
-        maxWidth: MEASURE }}>
-        {result.privacy_line}
-      </p>
-
-      <Section number="02" title="Who is affected">
-        <Chart result={result} />
-        <Affected result={result} />
-      </Section>
-
-      <Section number="03" title="What the model does">
-        <Checks result={result} />
-        <p className="narrative serif" style={{ margin: "48px 0 0", fontSize: 21,
-          lineHeight: "32px", maxWidth: MEASURE }}>
-          {result.narrative.body}
+    <main className="report">
+      <div className="report__main">
+        <p className="small muted">
+          {result.dataset.name} · {result.dataset.rows.toLocaleString("en-US")} rows · {created}
         </p>
-      </Section>
 
-      <Section number="04" title="The method">
-        <Technical result={result} />
-      </Section>
+        <Section id="verdict" index={0} title={SECTIONS[0].title}>
+          <Verdict result={result} />
+        </Section>
 
-      <footer style={{ marginTop: 96, paddingTop: 24, borderTop: "1px solid var(--hairline)",
-        fontSize: 15, lineHeight: "22px", color: "var(--ink-muted)" }}>
-        <p style={{ margin: 0, maxWidth: MEASURE }}>{result.privacy_line}</p>
-        <p style={{ margin: "8px 0 0", maxWidth: MEASURE }}>{result.disclaimer}</p>
-        <p style={{ margin: "16px 0 0", color: "var(--ink-faint)" }}>
-          Template-generated narrative · engine {result.engine_version} · {result.duration_ms} ms
-        </p>
-      </footer>
+        <Section id="checks" index={1} title={SECTIONS[1].title}>
+          <Checks result={result} />
+        </Section>
+
+        <Section id="affected" index={2} title={SECTIONS[2].title}>
+          <Chart result={result} />
+        </Section>
+
+        <Section id="meaning" index={3} title={SECTIONS[3].title}>
+          <Meaning result={result} />
+        </Section>
+
+        <Section id="method" index={4} title={SECTIONS[4].title}>
+          <Technical result={result} />
+        </Section>
+
+        <footer className="report__foot small">
+          <p>{result.privacy_line}</p>
+          <p>{result.disclaimer}</p>
+          <p className="faint">
+            Template-generated narrative · engine {result.engine_version} · {result.duration_ms} ms
+          </p>
+        </footer>
+      </div>
+
+      <aside className="report__aside">
+        <div className="aside__block">
+          <p className="label">On this page</p>
+          <ul className="aside__links">
+            {SECTIONS.map((section, index) => (
+              <li key={section.id}>
+                <a href={`#${section.id}`}>
+                  {pad(index)} {section.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="aside__block">
+          <p className="label">Dataset</p>
+          <p className="aside__file">{result.dataset.name}</p>
+          <p className="small muted">
+            {result.dataset.rows.toLocaleString("en-US")} rows · {result.dataset.columns} columns
+          </p>
+          <p className="small muted">engine {result.engine_version}</p>
+          <p className="small muted">{created}</p>
+        </div>
+      </aside>
     </main>
   );
 }

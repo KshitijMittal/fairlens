@@ -4,6 +4,7 @@ node_modules/
 .next/
 web/test-results/
 web/playwright-report/
+shots/
 web/*.tsbuildinfo
 .env
 __pycache__/

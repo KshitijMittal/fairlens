@@ -1,12 +1,11 @@
 import { type Analysis, type GroupRow, STATE, displayGroup, fixed, interval,
   thresholdText } from "./types";
 
-const CELL = { fontSize: 15, lineHeight: "22px" } as const;
+const CELL = { fontSize: 13, lineHeight: "20px" } as const;
 
 function Heading({ children }: { children: React.ReactNode }) {
   return (
-    <h3 style={{ margin: "32px 0 12px", fontFamily: "var(--font-sans)", fontSize: 17,
-      lineHeight: "27px", fontWeight: 600 }}>
+    <h3 style={{ margin: "32px 0 12px" }}>
       {children}
     </h3>
   );
@@ -31,8 +30,7 @@ function GroupTable({ caption, rows }: { caption: string; rows: GroupRow[] }) {
         <tbody>
           {rows.map((row) => (
             <tr key={row.label}>
-              <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0,
-                color: "var(--ink)", fontWeight: 400 }}>
+              <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>
                 {displayGroup(row.label)}
               </th>
               <td className="numeric">{row.n}</td>
@@ -54,9 +52,9 @@ export default function Technical({ result }: { result: Analysis }) {
   const influence = result.influence;
   return (
     <details>
-      <summary style={{ fontSize: 17 }}>Show the technical view</summary>
+      <summary>Show the technical view</summary>
       <div style={{ marginTop: 24 }}>
-        <p style={{ margin: 0, maxWidth: "66ch" }}>
+        <p style={{ margin: 0, maxWidth: "68ch" }}>
           The model here is a stand-in, trained on this data to measure what the data teaches.
           It is not meant to be shipped; it exists so the checks describe a model trained on your
           data rather than a model in general.
@@ -79,8 +77,7 @@ export default function Technical({ result }: { result: Analysis }) {
             <tbody data-testid="technical-metrics">
               {result.checks.map((check) => (
                 <tr key={check.code}>
-                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0,
-                    color: "var(--ink)", fontWeight: 400 }}>{check.code}</th>
+                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>{check.code}</th>
                   <td style={CELL}>{check.name}</td>
                   <td className="numeric">{check.value === null ? "—" : fixed(check.value)}</td>
                   <td className="numeric">{interval(check.interval) || "—"}</td>
@@ -144,15 +141,13 @@ export default function Technical({ result }: { result: Analysis }) {
             <tbody>
               {result.encoding.categorical.map((row) => (
                 <tr key={`cat-${row.column}`}>
-                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0,
-                    color: "var(--ink)", fontWeight: 400 }}>{row.column}</th>
+                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>{row.column}</th>
                   <td style={CELL}>{row.mapping}</td>
                 </tr>
               ))}
               {result.encoding.numeric.map((row) => (
                 <tr key={`num-${row.column}`}>
-                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0,
-                    color: "var(--ink)", fontWeight: 400 }}>{row.column}</th>
+                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>{row.column}</th>
                   <td style={CELL}>
                     numeric · median imputed {row.imputed_median ?? "—"}
                   </td>
@@ -160,8 +155,7 @@ export default function Technical({ result }: { result: Analysis }) {
               ))}
               {result.encoding.dropped.map((row) => (
                 <tr key={`drop-${row.column}`}>
-                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0,
-                    color: "var(--ink)", fontWeight: 400 }}>{row.column}</th>
+                  <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>{row.column}</th>
                   <td style={CELL}>dropped · {row.reason}</td>
                 </tr>
               ))}
@@ -185,8 +179,7 @@ export default function Technical({ result }: { result: Analysis }) {
               <tbody>
                 {influence.features.map((row) => (
                   <tr key={row.feature}>
-                    <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0,
-                      color: "var(--ink)", fontWeight: 400 }}>{row.feature}</th>
+                    <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>{row.feature}</th>
                     <td className="numeric">{fixed(row.value, 3)}</td>
                   </tr>
                 ))}
@@ -194,7 +187,7 @@ export default function Technical({ result }: { result: Analysis }) {
             </table>
           </div>
         ) : (
-          <p style={{ margin: 0, maxWidth: "66ch", color: "var(--ink-muted)" }}>
+          <p style={{ margin: 0, maxWidth: "68ch", color: "var(--ink-muted)" }}>
             {influence
               ? "Feature influence was unavailable for this run. The verdict and every other number are unaffected."
               : "This stored run has no feature-influence record."}
@@ -216,8 +209,7 @@ export default function Technical({ result }: { result: Analysis }) {
               <tbody>
                 {result.proxies.map((row) => (
                   <tr key={row.column}>
-                    <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0,
-                      color: "var(--ink)", fontWeight: 400 }}>{row.column}</th>
+                    <th scope="row" style={{ ...CELL, textTransform: "none", letterSpacing: 0, fontWeight: 400 }}>{row.column}</th>
                     <td style={CELL}>{row.measure.replace(/_/g, " ")}</td>
                     <td className="numeric">{fixed(row.value)}</td>
                   </tr>
@@ -226,13 +218,13 @@ export default function Technical({ result }: { result: Analysis }) {
             </table>
           </div>
         ) : (
-          <p style={{ margin: 0, maxWidth: "66ch", color: "var(--ink-muted)" }}>
+          <p style={{ margin: 0, maxWidth: "68ch", color: "var(--ink-muted)" }}>
             No column was associated with the group column above the reporting threshold.
           </p>
         )}
 
         <Heading>Sampling record</Heading>
-        <p style={{ margin: 0, maxWidth: "66ch", color: "var(--ink-muted)" }}>
+        <p style={{ margin: 0, maxWidth: "68ch", color: "var(--ink-muted)" }}>
           {result.sampling
             ? `Random sample of ${String(result.sampling.sampled_rows)} rows from ` +
               `${String(result.sampling.original_rows)}, seed ${String(result.sampling.seed)}.`
@@ -240,7 +232,7 @@ export default function Technical({ result }: { result: Analysis }) {
         </p>
 
         <a href={`/api/v1/analyses/${result.id}`} download={`fairlens-${result.id}.json`}
-          style={{ display: "inline-block", marginTop: 32, fontSize: 17 }}>
+          style={{ display: "inline-block", marginTop: 32 }}>
           Download JSON
         </a>
       </div>
